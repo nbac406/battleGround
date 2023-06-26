@@ -1,0 +1,11 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <form class="user_search" method="POST" action="{% url 'services:profile' %}">
+        {% csrf_token %}
+        유저 이름 : <input type="text" name="user_name" size="30">
+        <input type="submit" value="검색">
+    </form>
+</head>
