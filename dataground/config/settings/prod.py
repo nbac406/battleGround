@@ -11,17 +11,17 @@ STATIC_ROOT = BASE_DIR / 'static/'
 
 STATICFILES_DIRS = []
 
-# DATABASES = secure_settings.DATABASES
+DATABASES = secure_settings.DATABASES
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'dataground',
-        'USER' : 'root',
-        'PASSWORD' : 'password',
-        'HOST' : '127.0.0.1',
-        'PORT' : '3306'
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'dataground',
+#         'USER' : 'root',
+#         'PASSWORD' : 'password',
+#         'HOST' : '127.0.0.1',
+#         'PORT' : '3306'
+#     }
+# }
 
 API_KEY = secure_settings.API_KEY
