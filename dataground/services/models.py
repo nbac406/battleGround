@@ -5,10 +5,13 @@ class players(models.Model):
     player_name = models.CharField(max_length=100)
     shardid = models.CharField(max_length=100)
     matchId = models.CharField(max_length=200)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=False)
+
+    class Meta:
+        unique_together = [('accountId', 'matchId')]
 
 class match_summary(models.Model):
-    matchId = models.ForeignKey(players, on_delete=models.CASCADE, unique=True)
+    matchId = models.CharField(max_length=200)
     gamemode = models.CharField(max_length=20)
     mapname = models.CharField(max_length=30)
     duration = models.IntegerField()
@@ -17,19 +20,18 @@ class match_summary(models.Model):
     createdAt = models.DateTimeField(auto_now_add=False)
 
 class weapon_mastery(models.Model):
-    accountId = models.ForeignKey(players, on_delete=models.CASCADE, unique=True)
+    accountId = models.CharField(max_length=100)
     Item_Weapon_name = models.CharField(max_length=100)
-    Item_Weapon_classification = models.CharField(max_length=50)
     Item_Weapon_XPtotal = models.IntegerField()
 
 class match_participant(models.Model):
-    matchId = models.ForeignKey(players, on_delete=models.CASCADE)
+    matchId = models.CharField(max_length=200)
     player_name = models.CharField(max_length=100)
     accountId = models.CharField(max_length=200)
     rosterId = models.CharField(max_length=200)
     team_ranking = models.IntegerField()
     dbnos = models.IntegerField()
-    assist = models.IntegerField()
+    assists = models.IntegerField()
     damage_dealt = models.FloatField()
     headshot_kills = models.IntegerField()
     kills = models.IntegerField()
@@ -38,6 +40,9 @@ class match_participant(models.Model):
     ride_distance = models.FloatField()
     swim_distance = models.FloatField()
     walk_distance = models.FloatField()
+
+    class Meta:
+        unique_together = [('accountId', 'matchId')]
 
 class logs(models.Model):
     asset_url = models.ForeignKey(match_summary, on_delete=models.CASCADE)
