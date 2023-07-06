@@ -7,6 +7,9 @@ class players(models.Model):
     matchId = models.CharField(max_length=200)
     created_at = models.DateTimeField(auto_now_add=False)
 
+    def __str__(self):
+        return f"{self.created_at}"
+
     class Meta:
         unique_together = [('accountId', 'matchId')]
 
@@ -41,6 +44,9 @@ class match_participant(models.Model):
     swim_distance = models.FloatField()
     walk_distance = models.FloatField()
 
+    def __str__(self):
+        return f"{self.matchId}, {self.player_name}, {self.accountId}, {self.rosterId}, {self.team_ranking}, {self.dbnos}, {self.assists}, {self.damage_dealt}, {self.headshot_kills}, {self.kills}, {self.longestkill}, {self.team_kills}, {self.ride_distance}, {self.walk_distance}, {self.swim_distance}"
+    
     class Meta:
         unique_together = [('accountId', 'matchId')]
 

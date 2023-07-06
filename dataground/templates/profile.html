@@ -1,7 +1,30 @@
 {% load static %}
 <!DOCTYPE html>
 <html>
-<p>account_id : {{ account_id }}</p>
-<p>user_name : {{ user_name }}</p>
-<p>user_server : {{ user_server }}</p>
-<p>match_history :<br>{{ match_history }}</p>
+<meta charset="UTF-8">
+<h2> user_name : {{ user_name }}</h2>
+<form class="user_update" method="POST" action="{% url 'services:profile_update' %}">
+    {% csrf_token %}
+    <input type="hidden" name="user_name" value={{ user_name }}>
+    <input type="submit" value="전적 갱신">
+</form>
+
+{% for i in match_participant_data %}
+    <h3>Match Info {{ forloop.counter }}</h3>
+    {% for j in i.match_participant_data %}
+        <div>
+            <p>플레이 한 날짜 : {{ i.created_at.first }}</p>
+            <p>등수 : {{ j.team_ranking }}</p>
+            <p>기절 시킨 횟수 : {{ j.dbnos }}</p>
+            <p>어시스트 : {{ j.assists }}</p>
+            <p>가한 데미지 : {{ j.damage_dealt }}</p>
+            <p>헤드샷 : {{ j.headshot_kills }}</p>
+            <p>킬 : {{ j.kills }}</p>
+            <p>최장거리 킬 : {{ j.longestkill }}</p>
+            <p>팀킬 : {{ j.team_kills }}</p>
+            <p>차량 이동 거리 : {{ j.ride_distance }}</p>
+            <p>도보 이동 거리 : {{ j.walk_distance }}</p>
+            <p>수영 이동 거리 : {{ j.swim_distance }}</p>
+        </div>
+    {% endfor %}
+{% endfor %}
