@@ -7,21 +7,17 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-STATIC_ROOT = BASE_DIR / 'static/'
+# DATABASES = secure_settings.DATABASES
 
-STATICFILES_DIRS = []
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'dataground',
+        'USER' : 'root',
+        'PASSWORD' : 'password',
+        'HOST' : '127.0.0.1',
+        'PORT' : '3306'
+    }
+}
 
-DATABASES = secure_settings.DATABASES
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'dataground',
-#         'USER' : 'root',
-#         'PASSWORD' : 'password',
-#         'HOST' : '127.0.0.1',
-#         'PORT' : '3306'
-#     }
-# }
-
-API_KEY = secure_settings.API_KEY
+KEY = secure_settings.KEYS
