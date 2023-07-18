@@ -6,41 +6,12 @@ from django.db import transaction, IntegrityError
 from datetime import datetime, timedelta
 from django.urls import reverse
 from django.http import HttpResponseRedirect
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
-from sklearn.datasets import load_iris
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.cluster import KMeans
 import pandas as pd
 
-# Create your views here.
-
 def index(request):
     return render(request, 'main.html')
-
-# def profile(request, service):
-#     current_date = datetime.now()
-#     past_date = current_date - timedelta(days=30)
-#     players.objects.filter(created_at__lt=past_date).delete()
-#     user_service = request.GET.get("service")
-#     user_name = request.GET.get("user_name")
-#     user_data = players.objects.filter(player_name=user_name)
-#     user_data_match_ids = user_data.values('match_id')
-
-#     match_participant_data = []
-
-#     for i in range(len(user_data_match_ids)):
-#         m_data = {
-#             'match_participant_data' : match_participants.objects.filter(match_id = user_data_match_ids[i]['match_id'], player_name = user_name),
-#             'created_at' : players.objects.filter(match_id = user_data_match_ids[i]['match_id'], player_name = user_name)
-#         }
-#         match_participant_data.append(m_data)
-
-#     data = {
-#         'user_name' : user_name,
-#         'user_service' : user_service,
-#         'match_participant_data' : match_participant_data,
-#     }
-
-#     return render(request, 'profile.html', data)
 
 def profile(request):
     print(request.method)
@@ -60,6 +31,7 @@ def profile(request):
         for match_id in user_data_match_ids:
             m_data = {
                 'match_participant_data': match_participants.objects.filter(match_id=match_id, player_name=user_name),
+                'game_mode' : match_summarys.objects.filter(match_id=match_id).values('game_mode'),
                 'created_at': players.objects.filter(match_id=match_id, player_name=user_name).values('created_at').first(),
             }
             match_participant_data.append(m_data)
@@ -129,7 +101,9 @@ def profile_update(request):
 
                     else:
                         print("players 중복 데이터 PASS")
-
+                    print(account_id, i)
+                    get_player = players.objects.get(account_id=account_id, match_id=i)
+                    players_table = get_player.id
                     # weapon_masterys 데이터 삭제
                     try:
                         w_mastery = weapon_masterys.objects.filter(account_id=account_id)
@@ -158,8 +132,10 @@ def profile_update(request):
                         third_weapon_name = top3_weapons[2][0].split('_')[-2]
                         third_weapon_XPtotal = top3_weapons[2][1]['XPTotal']
 
-                        for i in weapon_mastery_data_list.keys() : 
-                            weapon_summary = weapon_mastery_data_list[i]
+                        df = pd.DataFrame()
+
+                        for l in weapon_mastery_data_list.keys() : 
+                            weapon_summary = weapon_mastery_data_list[l]
                             xptotal = weapon_summary['XPTotal']
                             most_defeats_in_a_game = weapon_summary['StatsTotal']['MostDefeatsInAGame']
                             defeats = weapon_summary['StatsTotal']['Defeats']
@@ -175,7 +151,7 @@ def profile_update(request):
                             most_groggies_in_a_game = weapon_summary['StatsTotal']['MostGroggiesInAGame']
                         
                             new_data = {
-                                'Weapon': i,
+                                'Weapon': l,
                                 'XPTotal': xptotal,
                                 'Most Defeats in a Game': most_defeats_in_a_game,
                                 'Defeats': defeats,
@@ -189,7 +165,7 @@ def profile_update(request):
                                 'Most Kills in a Game': most_kills_in_a_game,
                                 'Groggies': groggies,
                                 'Most Groggies in a Game': most_groggies_in_a_game}
-                                    
+                            
                             df = df.append(new_data, ignore_index=True)
                             # 지정사수소총 DMR
                             df.loc[df['Weapon'].isin(['Item_Weapon_SKS_C', 'Item_Weapon_FNFal_C', 'Item_Weapon_Mini14_C', 'Item_Weapon_Mk12_C', 'Item_Weapon_Mk14_C', 'Item_Weapon_QBU88_C', 'Item_Weapon_VSS_C']), '무기분류'] = 'DMR'
@@ -208,41 +184,43 @@ def profile_update(request):
                             # 돌격소총 AR
                             df.loc[df['Weapon'].isin(['Item_Weapon_HK416_C', 'Item_Weapon_AK47_C', 'Item_Weapon_BerylM762_C', 'Item_Weapon_SCAR-L_C', 'Item_Weapon_ACE32_C', 'Item_Weapon_QBZ95_C', 'Item_Weapon_M16A4_C', 'Item_Weapon_Groza_C', 'Item_Weapon_AUG_C', 'Item_Weapon_Mk47Mutant_C', 'Item_Weapon_FAMASG2_C', 'Item_Weapon_G36C_C', 'Item_Weapon_K2_C']), '무기분류'] = 'AR'
 
-                            features = df.drop(['Weapon', 'Most Defeats in a Game', 'Most Damage Player in a Game','Most Headshots in a Game', 'Most Kills in a Game', 'Most Groggies in a Game'], axis=1) 
+                        features = df.drop(['Weapon', 'Most Defeats in a Game', 'Most Damage Player in a Game','Most Headshots in a Game', 'Most Kills in a Game', 'Most Groggies in a Game'], axis=1) 
 
-                            
-                            weapon_categories = features['무기분류']  # 무기 카테고리 열 이름에 맞게 수정
-                            user_features = ['XPTotal', 'Defeats', 'Damage Player', 'Headshots', 'Longest Defeat', 'Long Range Defeats', 'Kills', 'Groggies'] # 사용자 특징 열 이름에 맞게 수정
+                        
+                        weapon_categories = features['무기분류']  # 무기 카테고리 열 이름에 맞게 수정
+                        user_features = ['XPTotal', 'Defeats', 'Damage Player', 'Headshots', 'Longest Defeat', 'Long Range Defeats', 'Kills', 'Groggies'] # 사용자 특징 열 이름에 맞게 수정
 
-                            group_by_weapon = features.groupby(weapon_categories).mean().reset_index()
+                        group_by_weapon = features.groupby(weapon_categories).mean().reset_index()
 
-                            scaler = MinMaxScaler()
-                            scaled_features = scaler.fit_transform(group_by_weapon[user_features])
+                        scaler = MinMaxScaler()
+                        scaled_features = scaler.fit_transform(group_by_weapon[user_features])
 
-                            k = 3
-                            kmeans = KMeans(n_clusters=k, random_state=42)
-                            kmeans.fit(scaled_features)
+                        k = 3
+                        kmeans = KMeans(n_clusters=k, random_state=42)
+                        kmeans.fit(scaled_features)
 
-                            group_by_weapon['Cluster'] = kmeans.labels_
-                            weapon_mapping = {i: category for i, category in enumerate(group_by_weapon.index)}
-                            group_by_weapon['우선순위'] = group_by_weapon['Cluster'].map(weapon_mapping)
+                        group_by_weapon['Cluster'] = kmeans.labels_
+                        weapon_mapping = {l: category for l, category in enumerate(group_by_weapon.index)}
+                        group_by_weapon['우선순위'] = group_by_weapon['Cluster'].map(weapon_mapping)
 
-                            result = {
-                                '분류': group_by_weapon
-                            }
+                        result = {
+                            '분류': group_by_weapon
+                        }
 
-                            cluster_counts = pd.Series(kmeans.labels_).value_counts()
+                        cluster_counts = pd.Series(kmeans.labels_).value_counts()
 
-                            if cluster_counts[0] >= cluster_counts[1] and cluster_counts[0] >= cluster_counts[2]:
-                                user_weapon_type = '저격수'
-                            elif cluster_counts[1] >= cluster_counts[0] and cluster_counts[1] >= cluster_counts[2]:
-                                user_weapon_type = '돌격수'
-                            else:
-                                user_weapon_type = '근접킬러'
+                        if cluster_counts[0] >= cluster_counts[1] and cluster_counts[0] >= cluster_counts[2]:
+                            user_weapon_type = '저격수'
+                        elif cluster_counts[1] >= cluster_counts[0] and cluster_counts[1] >= cluster_counts[2]:
+                            user_weapon_type = '돌격수'
+                        else:
+                            user_weapon_type = '근접킬러'
 
-                            result['유저무기유형'] = user_weapon_type
-                            print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@',result['유저무기유형'])
+                        result['유저무기유형'] = user_weapon_type
 
+                        get_player = players.objects.get(account_id=account_id, match_id=i)
+                        players_table = get_player.id
+                        
                         w_mastery = weapon_masterys(
                             players_table = players.objects.get(id=players_table),
                             account_id = account_id,
@@ -292,25 +270,6 @@ def profile_update(request):
                         print("m_summary 데이터 저장")
                     else:
                         print("m_summary 중복 데이터 PASS")
-                    # m_summary = match_summarys(
-                    #     players_table = players.objects.get(id=players_table),
-                    #     match_id = i,
-                    #     created_at = createAt,
-                    #     game_mode = gameMode, 
-                    #     map_name = mapname,
-                    #     duration = duration, 
-                    #     match_type = match_type, 
-                    #     asset_url = asset_url                            
-                    # )
-                    
-                    # try:
-                    #     with transaction.atomic():
-                    #         m_summary.save()           
-                    #         print('m_summary 저장')
-                    # except IntegrityError as e:
-                    #     print("IntegrityError : ", e)
-                    #     print('중복 데이터 PASS')
-                    #     pass
         
 
                 elif match_data_json['included'][j]['type'] == 'participant':
@@ -351,31 +310,6 @@ def profile_update(request):
                         print("m_participant 데이터 저장")
                     else:
                         print("m_participant 중복 데이터 PASS")
-                    # m_participant = match_participants(
-                    #     players_table = players.objects.get(id=players_table),
-                    #     match_id = i,
-                    #     player_name = player_name,
-                    #     account_id = accountId,
-                    #     team_ranking = team_ranking,
-                    #     dbnos = DBNOs,
-                    #     assists = assists,
-                    #     damage_dealt = damageDealt,
-                    #     headshot_kills = headshotkills,
-                    #     kills = kills,
-                    #     longest_kill = longestkill,
-                    #     team_kills = teamkills,
-                    #     ride_distance = rideDistance,
-                    #     swim_distance = swimDistance,
-                    #     walk_distance = walkDistance
-                    # )
-                    # try:
-                    #     with transaction.atomic():
-                    #         m_participant.save()
-                    #         print('m_participant 저장')
-                    # except IntegrityError as e:
-                    #     print("IntegrityError : ", e)
-                    #     print('중복 데이터 PASS')
-                    #     pass
 
     except requests.exceptions.RequestException as e:
         print('API 요청 오류:', e)

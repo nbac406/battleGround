@@ -1,37 +1,93 @@
 {% load static %}
 <!DOCTYPE html>
 <html>
-<meta charset="UTF-8">
-<h2> user_name : {{ user_name }}</h2>
-<h2> service : {{ user_service }}</h2>
-<form class="user_update" method="POST" action="{% url 'services:profile_update' %}">
-    {% csrf_token %}
-    <input type="hidden" name="service" value={{ user_service }}>
-    <input type="hidden" name="user_name" value={{ user_name }}>
-    <input type="submit" value="전적 갱신">
-</form>
-
-{% if not match_participant_data %}
-    <h1>최근 30일간 경기 이력이 없습니다. 전적 갱신을 해주세요.</h1>
-{% else %}
-
-    {% for i in match_participant_data %}
-        <h3>Match Info {{ forloop.counter }}</h3>
-        {% for j in i.match_participant_data %}
-            <div>
-                <p>플레이 한 날짜 : {{ i.created_at.first }}</p>
-                <p>등수 : {{ j.team_ranking }}</p>
-                <p>기절 시킨 횟수 : {{ j.dbnos }}</p>
-                <p>어시스트 : {{ j.assists }}</p>
-                <p>가한 데미지 : {{ j.damage_dealt }}</p>
-                <p>헤드샷 : {{ j.headshot_kills }}</p>
-                <p>킬 : {{ j.kills }}</p>
-                <p>최장거리 킬 : {{ j.longest_kill }}</p>
-                <p>팀킬 : {{ j.team_kills }}</p>
-                <p>차량 이동 거리 : {{ j.ride_distance }}</p>
-                <p>도보 이동 거리 : {{ j.walk_distance }}</p>
-                <p>수영 이동 거리 : {{ j.swim_distance }}</p>
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{% static 'navbar.css' %}">
+    {% include 'navbar.html' %}
+    <link rel="stylesheet" href="{% static 'profile.css' %}">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</head>
+<body>
+    <div class="row justify-content-center">
+        <div class="col-lg-8 bg-white p-4">
+            <div class="top">
+                <h2 class="top-content">{{ user_name }}</h2>
+                {% if user_service == 'kakao' %}
+                <img class="icon" src="{% static 'kakaoicon.jpg' %}" alt="kakao">
+                {% else %}
+                <img class="icon" src="{% static 'steamicon.png' %}" alt="steam">
+                {% endif %}
+                <form class="user_update" method="POST" action="{% url 'services:profile_update' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="service" value="{{ user_service }}">
+                    <input type="hidden" name="user_name" value="{{ user_name }}">
+                    <input class="update-button" type="submit" value="전적 갱신">
+                </form>
             </div>
-        {% endfor %}
-    {% endfor %}
-{% endif %}
+            <div class="overall">
+                <div class="overall-box">
+                    <h3 class="overall-solo">솔로</h3>
+                    <div class="overall-content">
+                        <p>솔로 모드에 대한 내용</p>
+                    </div>
+                </div>
+                <div class="overall-box">
+                    <h3 class="overall-duo">듀오</h3>
+                    <div class="overall-content">
+                        <p>듀오 모드에 대한 내용</p>
+                    </div>
+                </div>
+                <div class="overall-box">
+                    <h3 class="overall-squad">스쿼드</h3>
+                    <div class="overall-content">
+                        <p>스쿼드 모드에 대한 내용</p>
+                    </div>
+                </div>
+            </div>
+            {% if not match_participant_data %}
+            <div class="no-match-data">
+                <h1>최근 30일간 경기 이력이 없습니다. 전적 갱신을 해주세요.</h1>
+            </div>
+            {% else %}
+                {% for i in match_participant_data %}
+                    <div class="match-data-list">
+                        {% for j in i.match_participant_data %}
+                            <div class="data-box">
+                                <div class="match-info" style="{% if j.team_ranking == 1 %}background-color: rgb(117, 225, 255);{% elif j.team_ranking > 1 and j.team_ranking <= 10 %}background-color: rgb(76, 136, 255);{% else %}background-color: rgb(171, 171, 171);{% endif %}">
+                                    {% ifequal i.game_mode.0.game_mode 'solo' %}
+                                        <p>솔로</p>
+                                    {% endifequal %}
+                                    {% ifequal i.game_mode.0.game_mode 'duo' %}
+                                        <p>듀오</p>
+                                    {% endifequal %}
+                                    {% ifequal i.game_mode.0.game_mode 'squad' %}
+                                        <p>스쿼드</p>
+                                    {% endifequal %}
+                                    <p>{{ i.created_at.created_at|date:'m월 d일' }}</p>
+                                    <p>{{ j.team_ranking }}등</p>
+                                </div>
+                                <div class="match-data">
+                                    <p>킬<br>{{ j.kills }}</p>
+                                    <p>기절 시킨 횟수<br>{{ j.dbnos }}</p>
+                                    <p>어시스트<br>{{ j.assists }}</p>
+                                    <p>가한 데미지<br>{{ j.damage_dealt }}</p>
+                                    <p>헤드샷<br>{{ j.headshot_kills }}</p>
+                                    <p>최장거리 킬<br>{{ j.longest_kill }}</p>
+                                    <p>팀킬<br>{{ j.team_kills }}</p>
+                                    <p>차량 이동 거리<br>{{ j.ride_distance }}</p>
+                                    <p>도보 이동 거리<br>{{ j.walk_distance }}</p>
+                                    <p>수영 이동 거리<br>{{ j.swim_distance }}</p>
+                                    <button class="logButton" id="logButton">맵 로그</button>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+</body>
