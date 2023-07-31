@@ -107,14 +107,17 @@ class weapons(models.Model):
     graph_image_url = models.CharField(max_length=1000)
 
 class weapon_parts(models.Model):
-    weapons_table = models.ForeignKey(players, on_delete=models.CASCADE)
+    weapons_table = models.ForeignKey(weapons, on_delete=models.CASCADE)
     weapon_name = models.CharField(max_length=100)
     parts_name = models.CharField(max_length=100)
     parts_type = models.CharField(max_length=50)
     utilization_rate = models.FloatField()
 
 class maps(models.Model):
-    map_name = models.CharField(max_length=20, unique=True)
+    map_name = models.CharField(max_length=20)
     start_point  = models.IntegerField()
     end_point = models.IntegerField()
     image_url = models.CharField(max_length=1000)
+
+    class Meta:
+        unique_together = [('map_name', 'start_point', 'end_point')]

@@ -18,8 +18,12 @@
     <br>
     <br>
     <div class="menuButton-wrapper">
-        <button class="menuButton" id="weaponButton">무기 분석</button>
-        <button class="menuButton" id="mapButtom">맵 분석</button>
+        <a href="{% url 'services:weapons' %}">
+            <button class="menuButton" id="weaponButton">무기 분석</button>
+        </a>
+        <a href="{% url 'services:maps' %}">
+            <button class="menuButton" id="mapButtom">맵 분석</button>
+        </a>
     </div>
 
     <script src="{% static 'main.js' %}"></script>

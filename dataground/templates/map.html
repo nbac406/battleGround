@@ -1,0 +1,59 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>지도</title>
+    <link rel="stylesheet" type="text/css" href="https:///unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https:///unpkg.com/leaflet/dist/leaflet.js"></script>
+</head>
+<body>
+    <div id="map" style="width: 800px; height: 800px;"></div>
+
+    <script>
+        var imageUrl = '{% static "maps/Sanhok.jpg" %}';
+
+        var image = new Image();
+        image.src = imageUrl;
+
+        image.onload = function () {
+            var width = image.width;
+            var height = image.height;
+
+            // 이미지가 맵에 꽉 차도록 비율 계산
+            var aspectRatio = width / height;
+            var mapWidth = 800;
+            var mapHeight = mapWidth / aspectRatio;
+
+            var map = L.map('map', {
+                crs: L.CRS.Simple,
+                maxBounds: [[0, 0], [mapHeight, mapWidth]],
+                maxBoundsViscosity: 1.0,
+            });
+
+            var bounds = [[0, 0], [mapHeight, mapWidth]];
+            L.imageOverlay(imageUrl, bounds).addTo(map);
+
+            map.fitBounds(bounds); // 이미지가 자동으로 보이도록 지도 확대
+
+            var icon1 = L.icon({
+                iconUrl: '{% static "icons/Gun.png" %}',
+                iconSize: [32.8, 20],
+            });
+
+            var icon2 = L.icon({
+                iconUrl: '{% static "icons/Death.png" %}',
+                iconSize: [40, 28],
+            });
+
+            var marker1 = L.marker([400, 400], { icon: icon1 }).addTo(map);
+            var marker2 = L.marker([350, 350], { icon: icon2 }).addTo(map);
+
+            // 두 아이콘 사이에 선 추가
+            var latlngs = [marker1.getLatLng(), marker2.getLatLng()];
+            L.polyline(latlngs, { color: 'red' }).addTo(map);
+        };
+    </script>
+</body>
+</html>
