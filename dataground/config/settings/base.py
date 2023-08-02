@@ -127,3 +127,12 @@ LOGOUT_REDIRECT_URL = '/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 INTERNAL_IPS = ['127.0.0.1:8000'] 
+
+#gcs 스토리지 선택
+DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+
+GS_PROJECT_ID = 'playdata-2'
+GS_BUCKET_NAME = 'playdata2'
+
+
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/home/user/cd/battleGround/dataground/playdata-2-1e60a2f219de.json" # 경로 수정 이거 공개되면 안되는 키라 설정 해야함

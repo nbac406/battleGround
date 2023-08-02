@@ -14,9 +14,95 @@
 <body>
     <div class="row justify-content-center">
         <div class="col-lg-8 bg-white p-4">
-            <div class="top">
-                
+            <!-- Tier 1 -->
+            <div class="map-top">
+                <span style="display: inline-block; padding: 10px; background-color: #f1f1f1; border: 5px solid #ccc; margin-right: 5px; margin-bottom: 5px; border-radius: 5px; font-size: 16px; font-weight: bold;" data-box-id="1" id="box1">1티어</span>
             </div>
+            <div class="container">
+                <div class="row">
+                    {% for weapon in weapons_tier1 %}
+                    <div class="weapon-container">
+                        <a href="{% url 'services:weapons_detail' weapon_name=weapon.weapon_name %}">
+                            <img src="{% static 'weapons/'|add:weapon.weapon_name|add:'.JPG' %}" alt="{{ weapon.weapon_name }}" class="img-fluid custom-image-size">
+                        </a>
+                    </div>
+                    <link rel="stylesheet" href="{% static 'style.css' %}">
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Tier 2 -->
+            <div class="map-top">
+                <span>2티어</span>
+            </div>
+            <div class="container">
+                <div class="row">
+                    {% for weapon in weapons_tier2 %}
+                    <div class="weapon-container">
+                        <a href="{% url 'services:weapons_detail' weapon_name=weapon.weapon_name %}">
+                            <img src="{% static 'weapons/'|add:weapon.weapon_name|add:'.JPG' %}" alt="{{ weapon.weapon_name }}" class="img-fluid custom-image-size">
+                        </a>
+                    </div>
+                    <link rel="stylesheet" href="{% static 'style.css' %}">
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Tier 3 -->
+            <div class="map-top">
+                <span>3티어</span>
+            </div>
+            <div class="container">
+                <div class="row">
+                    {% for weapon in weapons_tier3 %}
+                    <div class="weapon-container">
+                        <a href="{% url 'services:weapons_detail' weapon_name=weapon.weapon_name %}">
+                            <img src="{% static 'weapons/'|add:weapon.weapon_name|add:'.JPG' %}" alt="{{ weapon.weapon_name }}" class="img-fluid custom-image-size">
+                        </a>
+                    </div>
+                    <link rel="stylesheet" href="{% static 'style.css' %}">
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Tier 4 -->
+            <div class="map-top">
+                <span>4티어</span>
+            </div>
+            <div class="container">
+                <div class="row">
+                    {% for weapon in weapons_tier4 %}
+                    <div class="weapon-container">
+                        <a href="{% url 'services:weapons_detail' weapon_name=weapon.weapon_name %}">
+                            <img src="{% static 'weapons/'|add:weapon.weapon_name|add:'.JPG' %}" alt="{{ weapon.weapon_name }}" class="img-fluid custom-image-size">
+                        </a>
+                    </div>
+                    <link rel="stylesheet" href="{% static 'style.css' %}">
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Tier 5 -->
+            <div class="map-top">
+                <span>5티어</span>
+            </div>
+            <div class="container">
+                <div class="row">
+                    {% for weapon in weapons_tier5 %}
+                    <div class="weapon-container">
+                        <a href="{% url 'services:weapons_detail' weapon_name=weapon.weapon_name %}">
+                            <img src="{% static 'weapons/'|add:weapon.weapon_name|add:'.JPG' %}" alt="{{ weapon.weapon_name }}" class="img-fluid custom-image-size">
+                        </a>
+                    </div>
+                    <link rel="stylesheet" href="{% static 'style.css' %}">
+                    {% endfor %}
+                </div>
+            </div>
+
         </div>
     </div>
+
+
+            
 </body>
+</html>
