@@ -1,4 +1,276 @@
 {% load static %}
 <!DOCTYPE html>
 <html>
-<a>{{ user_name }}</a>
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{% static 'navbar.css' %}">
+    {% include 'navbar.html' %}
+    <link rel="stylesheet" href="{% static 'profile.css' %}">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</head>
+<body>
+    <div class="row justify-content-center">
+        <div class="col-lg-8 bg-white p-4">
+            <div class="top">
+                <h2 class="top-content">{{ user_name }}</h2>
+                {% if user_service == 'kakao' %}
+                <img class="icon" src="{% static 'icons/kakaoicon.jpg' %}" alt="kakao">
+                {% else %}
+                <img class="icon" src="{% static 'icons/steamicon.png' %}" alt="steam">
+                {% endif %}
+                <form class="user_update" method="POST" action="{% url 'services:profile_update' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="service" value="{{ user_service }}">
+                    <input type="hidden" name="user_name" value="{{ user_name }}">
+                    <input class="update-button" type="submit" value="전적 갱신">
+                </form>
+            </div>
+            <div class="overall">
+                <div class="overall-box">
+                    <h3 class="overall-solo">솔로</h3>
+                    <div class="overall-content">
+                        {% if solo_data.solo_win_ratio %}
+                        <div class="row">
+                            <div class="data-item">
+                                <p style="font-weight: bold; font-size: 18px;">K/D</p>
+                                <p>{{ solo_data.solo_kd|floatformat:1 }}</p>
+                            </div>
+                            <div class="data-item">
+                                <p style="font-weight: bold; font-size: 18px;">1등</p>
+                                <p>{{ solo_data.solo_win_ratio|floatformat:1 }}%</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="data-item">
+                                <p style="font-weight: bold; font-size: 18px;">평균 딜량</p>
+                                <p>{{ solo_data.solo_deal_avr|floatformat:0 }}</p>
+                            </div>
+                            <div class="data-item">
+                                <p style="font-weight: bold; font-size: 18px;">TOP 10</p>
+                                <p>{{ solo_data.solo_top10_ratio|floatformat:1 }}%</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="data-item">
+                                <p style="font-weight: bold; font-size: 18px;">헤드샷</p>
+                                <p>{{ solo_data.solo_headshot_ratio|floatformat:0 }}%</p>
+                            </div>
+                            <div class="data-item">
+                                <p style="font-weight: bold; font-size: 18px;">최대 킬</p>
+                                <p>{{ solo_data.solo_max_kill }}킬</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="data-item">
+                                <p style="font-weight: bold; font-size: 18px;">최장거리 킬</p>
+                                <p>{{ solo_data.solo_max_kill_range }}M</p>
+                            </div>
+                        </div>
+                        {% else %}
+                        <p>최근 30일간 경기 기록이 없습니다.</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="overall-box">
+                    <h3 class="overall-duo">듀오</h3>
+                    <div class="overall-content">
+                        {% if duo_data.duo_win_ratio %}
+                        <div class="row">
+                            <div class="data-item">
+                                <p style="font-weight: bold; font-size: 18px;">K/D</p>
+                                <p>{{ duo_data.duo_kd|floatformat:1 }}</p>
+                            </div>
+                            <div class="data-item">
+                                <p style="font-weight: bold; font-size: 18px;">1등</p>
+                                <p>{{ duo_data.duo_win_ratio }}%</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="data-item">
+                                <p style="font-weight: bold; font-size: 18px;">평균 딜량</p>
+                                <p>{{ duo_data.duo_deal_avr|floatformat:0 }}</p>
+                            </div>
+                            <div class="data-item">
+                                <p style="font-weight: bold; font-size: 18px;">TOP 10</p>
+                                <p>{{ duo_data.duo_top10_ratio }}%</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="data-item">
+                                <p style="font-weight: bold; font-size: 18px;">헤드샷</p>
+                                <p>{{ duo_data.duo_headshot_ratio|floatformat:0 }}%</p>
+                            </div>
+                            <div class="data-item">
+                                <p style="font-weight: bold; font-size: 18px;">최대 킬</p>
+                                <p>{{ duo_data.duo_max_kill }}킬</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="data-item">
+                                <p style="font-weight: bold; font-size: 18px;">최장거리 킬</p>
+                                <p>{{ duo_data.duo_max_kill_range }}M</p>
+                            </div>
+                        </div>
+                        {% else %}
+                        <p>최근 30일간 경기 기록이 없습니다.</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="overall-box">
+                    <h3 class="overall-squad">스쿼드</h3>
+                    <div class="overall-content">
+                        {% if squad_data.squad_win_ratio %}
+                        <div class="row">
+                            <div class="data-item">
+                                <p style="font-weight: bold; font-size: 18px;">K/D</p>
+                                <p>{{ squad_data.squad_kd|floatformat:1 }}</p>
+                            </div>
+                            <div class="data-item">
+                                <p style="font-weight: bold; font-size: 18px;">1등</p>
+                                <p>{{ squad_data.squad_win_ratio }}%</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="data-item">
+                                <p style="font-weight: bold; font-size: 18px;">평균 딜량</p>
+                                <p>{{ squad_data.squad_deal_avr|floatformat:0 }}</p>
+                            </div>
+                            <div class="data-item">
+                                <p style="font-weight: bold; font-size: 18px;">TOP 10</p>
+                                <p>{{ squad_data.squad_top10_ratio }}%</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="data-item">
+                                <p style="font-weight: bold; font-size: 18px;">헤드샷</p>
+                                <p>{{ squad_data.squad_headshot_ratio|floatformat:0 }}%</p>
+                            </div>
+                            <div class="data-item">
+                                <p style="font-weight: bold; font-size: 18px;">최대 킬</p>
+                                <p>{{ squad_data.squad_max_kill }}킬</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="data-item">
+                                <p style="font-weight: bold; font-size: 18px;">최장거리 킬</p>
+                                <p>{{ squad_data.squad_max_kill_range }}M</p>
+                            </div>
+                        </div>
+                        {% else %}
+                        <p>최근 30일간 경기 기록이 없습니다.</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="overall-box">
+                    <h3 class="weapon-mastery">무기 마스터리 Top3</h3>
+                    <div class="overall-content">
+                        <div class="row">
+                            <div class="data-item">
+                                <p>1. {{ weapon_mastery_data.first_weapon_name }}</p>
+                                <p>경험치 - {{weapon_mastery_data.first_weapon_XPtotal }}</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="data-item">
+                                <p>2. {{ weapon_mastery_data.second_weapon_name }}</p>
+                                <p>경험치 - {{weapon_mastery_data.second_weapon_XPtotal }}</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="data-item">
+                                <p>3. {{ weapon_mastery_data.third_weapon_name }}</p>
+                                <p>경험치 - {{weapon_mastery_data.third_weapon_XPtotal }}</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="data-item">
+                                <p style="font-weight: bold; font-size: 20px;"><br>{{ weapon_mastery_data.weapon_cluster }} 스타일</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="match-history">
+                <h4>매치 히스토리(최근 30일)</h4>
+            </div>
+            {% if not page.object_list %}
+            <div class="no-match-data">
+                <h1>최근 30일간 경기 이력이 없습니다. 전적 갱신을 해주세요.</h1>
+            </div>
+            {% else %}
+                {% for i in page %}
+                    <div class="match-data-list">
+                        {% for j in i.match_participant_data %}
+                            <div class="data-box">
+                                <div class="match-info" style="{% if j.team_ranking == 1 %}background-color: rgb(95, 255, 149);{% elif j.team_ranking > 1 and j.team_ranking <= 10 %}background-color: rgb(76, 136, 255);{% else %}background-color: rgb(171, 171, 171);{% endif %}">
+                                    {% ifequal i.game_mode.0.game_mode 'solo' %}
+                                        <p>솔로</p>
+                                    {% endifequal %}
+                                    {% ifequal i.game_mode.0.game_mode 'duo' %}
+                                        <p>듀오</p>
+                                    {% endifequal %}
+                                    {% ifequal i.game_mode.0.game_mode 'squad' %}
+                                        <p>스쿼드</p>
+                                    {% endifequal %}
+                                    <p>{{ i.created_at.created_at|date:'m월 d일' }}</p>
+                                    <p>{{ j.team_ranking }}등</p>
+                                </div>
+                                <div class="match-data">
+                                    <p>킬<br>{{ j.kills }}</p>
+                                    <p>기절 시킨 횟수<br>{{ j.dbnos }}</p>
+                                    <p>어시스트<br>{{ j.assists }}</p>
+                                    <p>가한 데미지<br>{{ j.damage_dealt|floatformat:0 }}</p>
+                                    <p>헤드샷<br>{{ j.headshot_kills }}</p>
+                                    <p>최장거리 킬<br>{{ j.longest_kill }} M</p>
+                                    <p>팀킬<br>{{ j.team_kills }}</p>
+                                    <p>차량 이동 거리<br>{{ j.ride_distance|floatformat:0 }} M</p>
+                                    <p>도보 이동 거리<br>{{ j.walk_distance|floatformat:0 }} M</p>
+                                    <p>수영 이동 거리<br>{{ j.swim_distance|floatformat:0 }} M</p>
+                                    <button class="logButton" id="logButton">맵 로그</button>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+                <!-- 직접 페이지 번호를 선택할 수 있는 링크 -->
+                <div class="pagination-container">
+                    <ul class="pagination">
+                        <!-- {% if page.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1">&laquo;</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page.previous_page_number }}">이전</a>
+                        </li>
+                        {% endif %} -->
+            
+                        {% for num in page.paginator.page_range %}
+                            {% if page.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% else %}
+                                <li class="page-item">
+                                    <!-- 기존의 서비스 정보와 사용자 이름 정보를 유지하면서 페이지 번호만 추가 -->
+                                    <a class="page-link" href="?service={{ user_service }}&user_name={{ user_name }}&page={{ num }}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+            
+                        <!-- {% if page.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page.next_page_number }}">다음</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page.paginator.num_pages }}">&raquo;</a>
+                        </li>
+                        {% endif %} -->
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</body>

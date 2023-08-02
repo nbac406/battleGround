@@ -1,17 +1,25 @@
 from .base import *
 import secure_settings
 import pymysql
+import os
 
 pymysql.install_as_MySQLdb()
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-STATIC_ROOT = BASE_DIR / 'static/'
-
-STATICFILES_DIRS = []
-
 # DATABASES = secure_settings.DATABASES
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': os.environ['DB_NAME'],
+#         'USER' : os.environ['DB_USER'],
+#         'PASSWORD' : os.environ['DB_PASSWORD'],
+#         'HOST' : os.environ['DB_HOST'],
+#         'PORT' : os.environ['DB_PORT']
+#     }
+# }
 
 DATABASES = {
     'default': {
@@ -20,8 +28,8 @@ DATABASES = {
         'USER' : 'root',
         'PASSWORD' : 'password',
         'HOST' : '127.0.0.1',
-        'PORT' : '3306'
+        'PORT' : '3306',
     }
 }
 
-API_KEY = secure_settings.API_KEY
+KEY = secure_settings.KEYS

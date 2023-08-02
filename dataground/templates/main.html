@@ -2,10 +2,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet" href="{% static 'main.css' %}">
     <meta charset="UTF-8">
-    <form class="user_search" method="POST" action="{% url 'services:profile' %}">
-        {% csrf_token %}
-        유저 이름 : <input type="text" name="user_name" size="30">
-        <input type="submit" value="검색">
-    </form>
 </head>
+<body>
+    <div class="button-form-wrapper">
+        <button id="serviceButton">Steam</button>
+        <form class="user_search" id="searchForm" method="GET" action="{% url 'services:profile' %}">
+            <input type="hidden" id="serviceNameInput" name="service" value="steam">
+            <input type="text" id="userNameInput" name="user_name" placeholder="유저 이름" value="">
+            <button id="searchButton" type="submit" disabled>검색</button>
+        </form>
+    </div>
+
+    <br>
+    <br>
+    <div class="menuButton-wrapper">
+        <a href="{% url 'services:weapons' %}">
+            <button class="menuButton" id="weaponButton">무기 분석</button>
+        </a>
+        <a href="{% url 'services:maps' %}">
+            <button class="menuButton" id="mapButtom">맵 분석</button>
+        </a>
+    </div>
+
+    <script src="{% static 'main.js' %}"></script>
+</body>
+</html>
