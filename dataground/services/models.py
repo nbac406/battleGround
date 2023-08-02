@@ -65,7 +65,7 @@ class position_logs(models.Model):
     account_id = models.CharField(max_length=200)
     location_x = models.FloatField()
     location_y = models.FloatField()
-    event_time = models.DateTimeField(auto_now_add=False)
+    event_time = models.IntegerField()
 
     class Meta:
         unique_together = [('account_id', 'match_id', 'event_time')]
@@ -77,13 +77,11 @@ class kill_logs(models.Model):
     killer_name = models.CharField(max_length=100)
     victim_account_id = models.CharField(max_length=200)
     killer_account_id = models.CharField(max_length=200)
-    victim = models.CharField(max_length=100)
-    killer = models.CharField(max_length=100)
     victim_x = models.FloatField()
     victim_y = models.FloatField()
     killer_x = models.FloatField()
     killer_y = models.FloatField()
-    event_time = models.DateTimeField(auto_now_add=False)
+    event_time = models.IntegerField()
 
     class Meta:
         unique_together = [('match_id', 'victim_account_id', 'killer_account_id')]

@@ -1,33 +1,40 @@
 $(document).ready(function() {
+    showInitialMessage();
     $('#button1').click(function() {
         $('#content').html('<img src="/static/maps/Erangel.jpg" class="img-fluid" id="map-image">');
         setActiveButton(this);
-        generateButtons(1);
+        generateInputFields();
+        mapRequest('Erangel');
     });
     $('#button2').click(function() {
         $('#content').html('<img src="/static/maps/Miramar.jpg" class="img-fluid" id="map-image">');
         setActiveButton(this);
-        generateButtons(2);
+        generateInputFields();
+        mapRequest('Miramar');
     });
     $('#button3').click(function() {
         $('#content').html('<img src="/static/maps/Sanhok.jpg" class="img-fluid" id="map-image">');
         setActiveButton(this);
-        generateButtons(3);
+        generateInputFields();
+        mapRequest('Sanhok');
     });
     $('#button4').click(function() {
         $('#content').html('<img src="/static/maps/Vikendi.jpg" class="img-fluid" id="map-image">');
         setActiveButton(this);
-        generateButtons(4);
+        generateInputFields();
+        mapRequest('Vikendi');
     });
     $('#button5').click(function() {
         $('#content').html('<img src="/static/maps/Taego.jpg" class="img-fluid" id="map-image">');
         setActiveButton(this);
-        generateButtons(5);
+        generateInputFields();
+        mapRequest('Taego');
     });
     $('#button6').click(function() {
         $('#content').html('<img src="/static/maps/Deston.jpg" class="img-fluid" id="map-image">');
         setActiveButton(this);
-        generateButtons(6);
+        generateInputFields();
+        mapRequest('Deston');
     });
 });
 
@@ -36,33 +43,68 @@ function setActiveButton(selectedButton) {
     $(selectedButton).addClass("active");
 }
 
-function generateButtons(buttonId) {
-    var buttonsToShow = [];
-    var sanhokButtons = 16;
-    var elseButtons = 32;
+function generateInputFields() {
+    // airplaine-direction 내부의 입력 필드를 초기화
+    $('.info').empty();
+    $('.airplaine-direction').empty();
 
-    // 버튼을 생성하는 로직
-    if (buttonId === 3) {
-        for (var i = 1; i <= sanhokButtons; i++) {
-            buttonsToShow.push('<button class="map-select-button" data-button-id="' + i + '">버튼 ' + i + '</button>');
-        }
-    }
-    
-    else {
-        for (var i = 1; i <= elseButtons; i++) {
-            buttonsToShow.push('<button class="map-select-button" data-button-id="' + i + '">버튼 ' + i + '</button>');
-        }
-    }
+    // 두 개의 입력 필드 생성 및 추가
+    let textField = '<h4>비행기의 출발지와 도착지를 입력해 주세요!</h4><br>'
+    let inputField1 = '<input type="text" id="input-start" class="input-field" placeholder="출발">';
+    let inputField2 = '<input type="text" id="input-destination" class="input-field" placeholder="도착">';
+    let submitButton = '<button id="submit-button">확인</button>';
+    $('.info').append(textField);
+    $('.airplaine-direction').append(inputField1, inputField2, submitButton);
+}
 
-    setActiveButton($('.map-select-button[data-button-id="' + buttonId + '"]'));
+function mapRequest(mapName) {
+    const submitButton = $('#submit-button');
 
-    // 생성된 버튼들에 클릭 이벤트 추가
-    $('.map-select-button').click(function() {
-        var selectedButtonId = $(this).attr("data-button-id");
-        setActiveButton(this);
-        displayMapImage(selectedButtonId);
+    submitButton.click(function() {
+        event.preventDefault();
+        // 입력된 출발지와 도착지 값을 가져옵니다.
+        const start = $('#input-start').val();
+        const destination = $('#input-destination').val();
+        const csrfToken = getCookie('csrftoken');
+        console.log(start, destination, mapName)
+
+        // 서버와 통신하여 이미지 URL 가져오기
+        $.ajax({
+            url: '/getMapImageURL',
+            type: 'POST',
+            data: { start, destination, mapName },
+            headers: {
+                'X-CSRFToken': csrfToken
+            },
+            success: function(data) {
+                const content = $('#content')
+                // 성공 시 이미지 출력
+                content.html(`<img src="${data.imageURL}" class="img-fluid" id="map-image">`);
+            },
+            error: function(xhr, textStatus, errorThrown) {
+                // 실패 시 에러 처리
+                console.error('Error:', errorThrown);
+                $('#content').html('<h4>유효하지 않거나 표본이 적은 비행기 경로 입니다!!</h4>');
+            }
+        });
     });
+}
 
-    
-    $('#content').append(buttonsToShow.join(''));
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function showInitialMessage() {
+    $('#content').html('<h2>맵을 선택해 주세요!</h2>');
 }

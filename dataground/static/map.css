@@ -1,0 +1,103 @@
+body {
+    background-color: #343434;
+}
+
+.container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+#map {
+    width: 800px;
+    height: 800px;
+}
+
+.info-panel {
+    width: 852px; /* Kills 정보 패널의 너비를 늘립니다. 필요에 따라 조정할 수 있습니다. */
+    height: 760px;
+    padding: 20px; /* 내부 패딩을 늘립니다. */
+    background-color: #727272; /* 패널 배경색 지정 */
+}
+
+/* Kills 정보에 대한 스타일 설정 */
+.info-panel h2 {
+    margin-top: 0;
+    color: #ffffff; /* 제목 색상 지정 */
+    font-size: 20px; /* 제목 글꼴 크기 지정 */
+    border-bottom: 1px solid #ccc; /* 제목 아래에 라인 추가 */
+    padding-bottom: 5px; /* 제목과 내용 간의 간격 설정 */
+    font-size: 24px; 
+}
+
+.info-panel ul {
+    padding: 0;
+    margin-top: 20px; /* Kills 정보와 맵 사이의 간격을 설정합니다. 필요에 따라 조정할 수 있습니다. */
+}
+
+.kill-box {
+    margin-bottom: 8px;
+    line-height: 1.4;
+    background-color: rgb(64, 157, 64); /* 각 박스의 배경색을 정의합니다. */
+    border: 1px solid #ccc; /* 박스에 테두리 추가 */
+    border-radius: 4px; /* 박스 모서리를 둥글게 만듭니다. */
+    list-style: none;
+    font-size: 18px;
+    color: white; /* 킬 정보는 녹색으로 표시 */
+    display: block; /* inline-block 대신 block으로 변경합니다. */
+    position: relative; /* 포지션을 설정합니다. */
+}
+
+.kill-box:hover {
+    background-color: #85ae91; /* 호버 시 박스의 배경색을 변경합니다. */
+    color: #fff; /* 호버 시 글꼴 색상을 흰색으로 변경합니다. */
+    cursor: pointer; /* 호버 시 커서를 손가락 모양으로 변경합니다. */
+    transition: background-color 0.3s ease; /* 호버 효과의 부드러운 전환 적용 */
+}
+
+.death-box {
+    margin-bottom: 8px;
+    line-height: 1.4;
+    background-color: rgb(120, 0, 185); /* 각 박스의 배경색을 정의합니다. */
+    border: 1px solid #ccc; /* 박스에 테두리 추가 */
+    border-radius: 4px; /* 박스 모서리를 둥글게 만듭니다. */
+    list-style: none;
+    font-size: 18px;
+    color: white; /* 킬 정보는 녹색으로 표시 */
+}
+
+.death-box:hover {
+    background-color: #b731ff; /* 호버 시 박스의 배경색을 변경합니다. */
+    color: #fff; /* 호버 시 글꼴 색상을 흰색으로 변경합니다. */
+    cursor: pointer; /* 호버 시 커서를 손가락 모양으로 변경합니다. */
+    transition: background-color 0.3s ease; /* 호버 효과의 부드러운 전환 적용 */
+}
+
+.event-time {
+    background-color: rgb(255, 255, 255);
+    font-weight: bold; /* 시간을 굵게 표시합니다. */
+    font-size: 13px; /* 시간 글꼴 크기를 15px로 설정합니다. */
+    color: rgb(0, 0, 0); /* 시간의 색상을 검은색으로 설정합니다. */
+    margin-top: -1px;
+    margin-bottom: -1px;
+    width: 70px;
+    height: 40px;
+    margin-left: -1px;
+    margin-right: 15px; /* 시간과 킬 또는 데스 정보 사이의 간격을 설정합니다. 필요에 따라 조정할 수 있습니다. */
+    padding: 12px 5px;
+    border: 1px solid #ccc; /* 시간에 테두리를 추가합니다. */
+    border-radius: 4px; /* 시간 박스 모서리를 둥글게 만듭니다. */
+    box-sizing: border-box;
+    display: inline-block;
+    text-align: center;
+
+}
+
+.kill-count {
+    position: absolute; /* 포지션을 설정합니다. */
+    right: 0; /* 오른쪽에 위치하도록 설정합니다. */
+    font-weight: bold; /* 원하는 폰트 두께 설정 */
+    color: #db0000; /* 원하는 킬 카운트 색상 설정 */
+    margin-top: 6px;
+    margin-right: 15px;
+}

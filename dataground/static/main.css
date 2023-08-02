@@ -18,6 +18,7 @@ html {
     align-items: center;
     width: 100%;
     height: 100px;
+    margin-top: 200px;
 }
 
 /* 버튼의 크기와 폰트 크기 조절 */
@@ -47,7 +48,7 @@ html {
 }
 
 .menuButton {
-    display: inline-block;;
+    display: inline-block;
     justify-content: center;
     align-items: center;
     margin: 40px;
@@ -71,7 +72,6 @@ html {
 }
 
 .menuButton-wrapper {
-    position: absolute;
     display: flex;
     align-items: center;
     margin-top: 20px; /* 위쪽 여백을 줍니다 */
