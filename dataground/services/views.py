@@ -12,6 +12,7 @@ import pandas as pd
 import warnings
 from django.core.paginator import Paginator
 from django.db.models import Avg, Max, Min, Sum, Count
+from google.cloud import storage
 
 def index(request):
     return render(request, 'main.html')
@@ -740,9 +741,24 @@ def match_log_map(request):
 
 def map_analysis(request):
     return render(request, 'map_analysis.html')
+from .models import weapons
 
 def weapon_analysis(request):
-    return render(request, 'weapon_analysis.html')
+    weapons_tier1 = weapons.objects.filter(weapon_tier=1)
+    weapons_tier2 = weapons.objects.filter(weapon_tier=2)
+    weapons_tier3 = weapons.objects.filter(weapon_tier=3)
+    weapons_tier4 = weapons.objects.filter(weapon_tier=4)
+    weapons_tier5 = weapons.objects.filter(weapon_tier=5)
+
+    context = {
+        'weapons_tier1': weapons_tier1,
+        'weapons_tier2': weapons_tier2,
+        'weapons_tier3': weapons_tier3,
+        'weapons_tier4': weapons_tier4,
+        'weapons_tier5': weapons_tier5,
+    }
+
+    return render(request, 'weapon_analysis.html', context)
 
 def get_map_image_url(request):
     if request.method == "POST" and "start" in request.POST and "destination" in request.POST:
@@ -770,3 +786,28 @@ def get_map_image_url(request):
     else:
         # 요청이 올바르지 않은 경우 에러 응답
         return JsonResponse({"error": "Invalid request"}, status=400)
+
+def get_image_url(bucket_name, file_path):
+    client = storage.Client.from_service_account_json('./playdata-2-1e60a2f219de.json')
+    bucket = client.get_bucket(bucket_name)
+    blob = bucket.blob(file_path)
+    return blob.public_url
+
+
+def weapons_detail(request, weapon_name):
+    specific_weapon = weapons.objects.get(weapon_name=weapon_name)
+    weapon_image_url = get_image_url('playdata2', f'images/{specific_weapon.weapon_name}.jpg')
+    weapon_parts_type_all = [
+        {'name': '탄창', 'parts': weapon_parts.objects.filter(weapon_name=weapon_name, parts_type='탄창')},
+        {'name': '조준경', 'parts': weapon_parts.objects.filter(weapon_name=weapon_name, parts_type='조준경')},
+        {'name': '총구', 'parts': weapon_parts.objects.filter(weapon_name=weapon_name, parts_type='총구')},
+        {'name': '개머리판', 'parts': weapon_parts.objects.filter(weapon_name=weapon_name, parts_type='개머리판')},
+        {'name': '손잡이', 'parts': weapon_parts.objects.filter(weapon_name=weapon_name, parts_type='손잡이')},
+    ]
+
+    context = {
+        'weapon': specific_weapon,
+        'weapon_image_url': weapon_image_url,
+        'weapon_parts_type_all': weapon_parts_type_all
+    }
+    return render(request, 'weapon_analysis_detail.html', context)

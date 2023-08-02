@@ -1,0 +1,124 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{% static 'navbar.css' %}">
+    {% include 'navbar.html' %}
+    <link rel="stylesheet" href="{% static 'profile.css' %}">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <style>
+        .table-two-cols, .table-four-cols {
+            width: 100%;
+        }
+        .table-two-cols th, .table-two-cols td {
+            width: 50%;
+        }
+        .table-four-cols th, .table-four-cols td {
+            width: 25%;
+        }
+        .col-lg-8 {
+            height: 100%;
+            margin-top: 0;
+            justify-content: center;
+            align-items: center;    
+        }
+    </style>
+</head>
+<body>
+    <div class="row justify-content-center">
+        <div class="col-lg-8 bg-white p-4">
+            <div class="map-top">
+                <span style="display: inline-block; padding: 10px; background-color: #f1f1f1; border: 5px solid #ccc; margin-right: 5px; margin-bottom: 5px; border-radius: 5px; font-size: 16px; font-weight: bold;" data-box-id="1" id="box1">1티어</span>
+            </div>
+            
+            <div class="row justify-content-center align-items-center" style="margin-top: 30px; margin-bottom: 30px;">
+                {% with weapon_obj=weapon %}
+                <div class="col-lg-4">
+                    
+                    <img src="{% static 'weapons/'|add:weapon.weapon_name|add:'.JPG' %}" alt="{{ weapon.weapon_name }} 무기 이미지" style="max-width: 100%; max-height: 100%;">
+                    
+                
+            </div>
+                <div class="col-lg-8">
+                    <div class="container">
+                        <h2><b>무기상성</b></h2>
+                        <table class="table table-bordered table-four-cols" style="width: 100%;">
+                            <!-- 테이블 내용은 동일하게 유지 -->
+                        <thead>
+                            <tr>
+                                <th colspan="2" style="font-size: 20px;">상대하기 쉬운 무기 TOP3</th>
+                                <th colspan="2" style="font-size: 20px;">상대하기 어려운 무기 TOP3</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th>무기</th>
+                                <th>승률</th>
+                                <th>무기</th>
+                                <th>승률</th>
+                            </tr>
+                            <tr>
+                                <th>{{ weapon_obj.first_easy_weapon }}</th>
+                                <td>{{ weapon_obj.first_easy_percent|floatformat:2 }}%</td>
+                                <th>{{ weapon_obj.first_hard_weapon }}</th>
+                                <td>{{ weapon_obj.first_hard_percent|floatformat:2 }}%</td>
+                            </tr>
+                            <tr>
+                                <th>{{ weapon_obj.second_easy_weapon }}</th>
+                                <td>{{ weapon_obj.second_easy_percent|floatformat:2 }}%</td>
+                                <th>{{ weapon_obj.second_hard_weapon }}</th>
+                                <td>{{ weapon_obj.second_hard_percent|floatformat:2 }}%</td>
+                            </tr>
+                            <tr>
+                                <th>{{ weapon_obj.third_easy_weapon }}</th>
+                                <td>{{ weapon_obj.third_easy_percent|floatformat:2 }}%</td>
+                                <th>{{ weapon_obj.third_hard_weapon }}</th>
+                                <td>{{ weapon_obj.third_hard_percent|floatformat:2 }}%</td>
+                            </tr>
+                        </tbody>
+                    </table>            
+                </div>
+            </div>
+            {% endwith %}
+        </div>
+            <div class="row"> 
+                <div class="col-lg-12"> 
+                    <h3><b>Parts 선호도</b></h3>
+                    {% for part_type in weapon_parts_type_all %}
+                        <h4>{{ part_type.name }}</h4>
+                        <table class="table table-bordered table-two-cols">
+                            <thead>
+                                <tr>
+                                    <th>Part Name</th>
+                                    <th>utilization_rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for part in part_type.parts %}
+                                <tr>
+                                    <td>{{ part.parts_name }}</td>
+                                    <td>{{ part.utilization_rate }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% endfor %}
+                </div>
+            </div>
+            {% with weapon_image_path=graph_url %}
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-12 text-center">
+                        <img src="{{ weapon_image_url }}" alt="{{ weapon.weapon_name }} 무기 거리분석" class="img-fluid weapon-image">
+                    </div>
+                </div>
+            </div>
+            {% endwith %}
+        </div>
+    </div>
+</body>
+</html>

@@ -21,14 +21,27 @@ ALLOWED_HOSTS = ['*']
 #     }
 # }
 
+
+#DATABASES = {
+#    'default': {
+#        'ENGINE': 'django.db.backends.mysql',
+#        'NAME': 'dataground',
+#        'USER' : 'root',
+#        'PASSWORD' : 'password',
+#        'HOST' : '127.0.0.1',
+#        'PORT' : '3306',
+#    }
+#}
+
+## 실험용
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'dataground',
+        'NAME': 'test2',
         'USER' : 'root',
-        'PASSWORD' : 'password',
+        'PASSWORD' : '1234',
         'HOST' : '127.0.0.1',
-        'PORT' : '3306',
+        'PORT' : '4000',
     }
 }
 
