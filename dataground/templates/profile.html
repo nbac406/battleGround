@@ -32,7 +32,7 @@
                 <div class="overall-box">
                     <h3 class="overall-solo">솔로</h3>
                     <div class="overall-content">
-                        {% if solo_data.solo_win_ratio %}
+                        {% if solo_data.solo_win_ratio != None %}
                         <div class="row">
                             <div class="data-item">
                                 <p style="font-weight: bold; font-size: 18px;">K/D</p>
@@ -77,7 +77,7 @@
                 <div class="overall-box">
                     <h3 class="overall-duo">듀오</h3>
                     <div class="overall-content">
-                        {% if duo_data.duo_win_ratio %}
+                        {% if duo_data.duo_win_ratio != None %}
                         <div class="row">
                             <div class="data-item">
                                 <p style="font-weight: bold; font-size: 18px;">K/D</p>
@@ -122,7 +122,7 @@
                 <div class="overall-box">
                     <h3 class="overall-squad">스쿼드</h3>
                     <div class="overall-content">
-                        {% if squad_data.squad_win_ratio %}
+                        {% if squad_data.squad_win_ratio != None %}
                         <div class="row">
                             <div class="data-item">
                                 <p style="font-weight: bold; font-size: 18px;">K/D</p>
@@ -205,7 +205,7 @@
                     <div class="match-data-list">
                         {% for j in i.match_participant_data %}
                             <div class="data-box">
-                                <div class="match-info" style="{% if j.team_ranking == 1 %}background-color: rgb(95, 255, 149);{% elif j.team_ranking > 1 and j.team_ranking <= 10 %}background-color: rgb(76, 136, 255);{% else %}background-color: rgb(171, 171, 171);{% endif %}">
+                                <div class="match-info" style="{% if j.team_ranking == 1 %}background-color: rgb(255, 255, 53);{% elif j.team_ranking > 1 and j.team_ranking <= 10 %}background-color: rgb(76, 136, 255);{% else %}background-color: rgb(171, 171, 171);{% endif %}">
                                     {% ifequal i.game_mode.0.game_mode 'solo' %}
                                         <p>솔로</p>
                                     {% endifequal %}
@@ -219,6 +219,24 @@
                                     <p>{{ j.team_ranking }}등</p>
                                 </div>
                                 <div class="match-data">
+                                    {% ifequal i.map_name.0.map_name 'Savage_Main' %}
+                                    <p>맵<br>사녹</p>
+                                    {% endifequal %}
+                                    {% ifequal i.map_name.0.map_name 'Baltic_Main' %}
+                                    <p>맵<br>에란겔</p>
+                                    {% endifequal %}
+                                    {% ifequal i.map_name.0.map_name 'Desert_Main' %}
+                                    <p>맵<br>미라마</p>
+                                    {% endifequal %}
+                                    {% ifequal i.map_name.0.map_name 'DihorOtok_Main' %}
+                                    <p>맵<br>비켄디</p>
+                                    {% endifequal %}
+                                    {% ifequal i.map_name.0.map_name 'Tiger_Main' %}
+                                    <p>맵<br>테이고</p>
+                                    {% endifequal %}
+                                    {% ifequal i.map_name.0.map_name 'Kiki_Main' %}
+                                    <p>맵<br>데스턴</p>
+                                    {% endifequal %}
                                     <p>킬<br>{{ j.kills }}</p>
                                     <p>기절 시킨 횟수<br>{{ j.dbnos }}</p>
                                     <p>어시스트<br>{{ j.assists }}</p>
@@ -229,8 +247,8 @@
                                     <p>차량 이동 거리<br>{{ j.ride_distance|floatformat:0 }} M</p>
                                     <p>도보 이동 거리<br>{{ j.walk_distance|floatformat:0 }} M</p>
                                     <p>수영 이동 거리<br>{{ j.swim_distance|floatformat:0 }} M</p>
-                                    <button class="logButton" id="logButton">맵 로그</button>
                                 </div>
+                                <a class="logButton" href="{% url 'services:map_log' %}?match_id={{ j.match_id }}&account_id={{ j.account_id }}&map_name={{ i.map_name.0.map_name }}">맵 로그</a>
                             </div>
                         {% endfor %}
                     </div>
@@ -238,15 +256,6 @@
                 <!-- 직접 페이지 번호를 선택할 수 있는 링크 -->
                 <div class="pagination-container">
                     <ul class="pagination">
-                        <!-- {% if page.has_previous %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page=1">&laquo;</a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ page.previous_page_number }}">이전</a>
-                        </li>
-                        {% endif %} -->
-            
                         {% for num in page.paginator.page_range %}
                             {% if page.number == num %}
                                 <li class="page-item active">
@@ -259,15 +268,6 @@
                                 </li>
                             {% endif %}
                         {% endfor %}
-            
-                        <!-- {% if page.has_next %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ page.next_page_number }}">다음</a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ page.paginator.num_pages }}">&raquo;</a>
-                        </li>
-                        {% endif %} -->
                     </ul>
                 </div>
             {% endif %}

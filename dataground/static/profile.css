@@ -145,11 +145,7 @@ html {
 }
 
 .match-data p {
-    margin: 0 15px; 
-}
-
-.match-data button.logButton {
-    margin-left: auto;
+    margin: 0 13px; 
 }
 
 .match-info {
@@ -162,6 +158,33 @@ html {
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+.logButton {
+    display: flex; /* 버튼과 텍스트를 가로로 배치하기 위해 flex를 사용합니다. */
+    align-items: center; /* 텍스트를 수직으로 가운데 정렬합니다. */
+    margin-left: auto; /* 버튼을 최대한 오른쪽에 배치합니다. */
+    padding: 8px 16px;
+    background-color: rgb(81, 187, 117);
+    color: #fff;
+    text-align: center;
+    text-decoration: none;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+/* .logButton 내부의 <a> 요소의 스타일을 다음과 같이 수정합니다. */
+.logButton a {
+    color: #fff; /* <a> 요소의 텍스트 색상을 흰색으로 지정합니다. */
+    text-decoration: none; /* 밑줄을 제거합니다. */
+}
+
+.logButton:hover {
+    background-color: #367743; 
+    text-decoration: none;
+    color: #fff;
 }
 /* -----------map_analysis 디자인들------------- */
 
@@ -212,37 +235,36 @@ html {
 }
 
 .img-container {
+    position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh; /* 화면 높이의 100%를 차지하여 이미지를 화면 가운데로 정렬합니다. */
+    margin-top: 85px;
 }
 
-.img-and-buttons {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-  
-.img-container {
-    position: relative;
-}
-  
-.buttons-container {
+.airplaine-direction {
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    top: -45px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    background-color: rgba(255, 255, 255, 0.7); /* 원하는 대로 투명도와 배경색을 조정하세요 */
-    padding: 20px;
+    gap: 10px;
 }
-  
-.map-select-button {
-    margin: 5px;
+
+.airplaine-direction input {
+    width: 60px;
+    height: 40px;
+    padding: 5px;
+    text-align: center;
+}
+
+.info {
+    position: absolute;
+    top: -80px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
+    display: flex;
+    gap: 10px;
 }

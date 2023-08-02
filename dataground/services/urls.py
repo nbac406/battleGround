@@ -13,6 +13,7 @@ urlpatterns =[
     path('map_log/', views.match_log_map, name='map_log'),
     path('maps/', views.map_analysis, name='maps'),
     path('weapons/', views.weapon_analysis, name='weapons'),
+    path('getMapImageURL', views.get_map_image_url, name='get_map_image_url'),
  ]
 
 if base.DEBUG:

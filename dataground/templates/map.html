@@ -1,4 +1,5 @@
 {% load static %}
+{% load custom_filters %}
 
 <!DOCTYPE html>
 <html>
@@ -6,54 +7,139 @@
     <meta charset="UTF-8">
     <title>지도</title>
     <link rel="stylesheet" type="text/css" href="https:///unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" type="text/css" href="{% static 'map.css' %}" />
     <script src="https:///unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 </head>
 <body>
-    <div id="map" style="width: 800px; height: 800px;"></div>
+    <div class="container">
+        <div id="map"></div>
+        <div class="info-panel">
+            <h2>Kills 정보</h2>
+            <!-- Kills 정보를 나열할 영역을 추가하세요 -->
+            <ul>
+                {% for kill in kills %}
+                    {% if kill.killer_name == player_name %}
+                        <li class="kill-box">
+                            <span class="event-time">{{ kill.event_time|seconds_to_mins_secs }}</span> {{ kill.victim_name }} 킬
+                            <span class="kill-count">{{ forloop.counter }}킬</span>
+                        </li>
+                    {% elif kill.victim_name == player_name %}
+                        <li class="death-box">
+                            <span class="event-time">{{ kill.event_time|seconds_to_mins_secs }}</span> {{ kill.killer_name }} 에게 죽음
+                        </li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
 
     <script>
-        var imageUrl = '{% static "maps/Sanhok.jpg" %}';
+        $(document).ready(function () {
+            var imageUrl = '{% static "maps/" %}' + '{{ map_name }}' + '_log.jpg';
+            var player_name = '{{ player_name }}';
+    
+            var image = new Image();
+            image.src = imageUrl;
+    
+            image.onload = function () {
+                var width = image.width;
+                var height = image.height;
+    
+                // 이미지가 맵에 꽉 차도록 비율 계산
+                var aspectRatio = width / height;
+                var mapWidth = 800;
+                var mapHeight = mapWidth / aspectRatio;
+    
+                var map = L.map('map', {
+                    crs: L.CRS.Simple,
+                    maxBounds: [[0, 0], [mapHeight, mapWidth]],
+                    maxBoundsViscosity: 1.0,
+                });
+    
+                var bounds = [[0, 0], [mapHeight, mapWidth]];
+                L.imageOverlay(imageUrl, bounds).addTo(map);
+    
+                map.fitBounds(bounds); // 이미지가 자동으로 보이도록 지도 확대
+    
+                var killerIcon = L.icon({
+                    iconUrl: '{% static "icons/Gun.png" %}',
+                    iconSize: [32.8, 20],
+                });
+    
+                var victimIcon = L.icon({
+                    iconUrl: '{% static "icons/Death.png" %}',
+                    iconSize: [40, 28],
+                });
+    
+                var mapSize = {% if map_name == 'Erangel' %}819200{% elif map_name == 'Miramar' %}815850{% elif map_name == 'Sanhok' %}408050{% elif map_name == 'Vikendi' %}815800{% elif map_name == 'Taego' %}815850{% elif map_name == 'Deston' %}816000{% endif %};
+    
+                var kills = [
+                    {% for kill in kills %}
+                    [
+                        {{ kill.killer_x|floatformat:2 }},
+                        {{ kill.killer_y|floatformat:2 }},
+                        {{ kill.victim_x|floatformat:2 }},
+                        {{ kill.victim_y|floatformat:2 }},
+                        '{{ kill.killer_name }}',
+                        '{{ kill.victim_name }}'
+                    ],
+                    {% endfor %}
+                ];
+    
+                var positions = [
+                    {% for position in positions %}
+                    [
+                        {{ position.location_x|floatformat:2 }},
+                        {{ position.location_y|floatformat:2 }}
+                    ],
+                    {% endfor %}
+                ];
+    
+                // 킬 정보를 사용하여 마커와 폴리라인을 추가하고 지도에 표시합니다.
+                for (var i = 0; i < kills.length; i++) {
+                    var adjustedKillerY = (kills[i][0] * 800) / mapSize;
+                    var adjustedKillerX = 800 - ((kills[i][1] * 800) / mapSize);
+                    var adjustedVictimY = (kills[i][2] * 800) / mapSize;
+                    var adjustedVictimX = 800 - ((kills[i][3] * 800) / mapSize);
+                    
+                    L.marker([adjustedKillerX, adjustedKillerY], { icon: killerIcon }).addTo(map);
+                    L.marker([adjustedVictimX, adjustedVictimY], { icon: victimIcon }).addTo(map);
 
-        var image = new Image();
-        image.src = imageUrl;
+                    var polylineColor = 'blue';
+                    if (kills[i][5] === player_name) {
+                        var polylineColor = 'purple';
+                    }
 
-        image.onload = function () {
-            var width = image.width;
-            var height = image.height;
+                    L.polyline([
+                        [adjustedKillerX, adjustedKillerY],
+                        [adjustedVictimX, adjustedVictimY]
+                    ], { color: polylineColor }).addTo(map);
+                }
 
-            // 이미지가 맵에 꽉 차도록 비율 계산
-            var aspectRatio = width / height;
-            var mapWidth = 800;
-            var mapHeight = mapWidth / aspectRatio;
+                var positionCoordinates = [];
+                var colorStep = 100 / positions.length; // 색상의 변화 간격
 
-            var map = L.map('map', {
-                crs: L.CRS.Simple,
-                maxBounds: [[0, 0], [mapHeight, mapWidth]],
-                maxBoundsViscosity: 1.0,
-            });
+                for (var j = 0; j < positions.length; j++) {
+                    var adjustedPositionY = (positions[j][0] * 800) / mapSize;
+                    var adjustedPositionX = 800 - ((positions[j][1] * 800) / mapSize);
 
-            var bounds = [[0, 0], [mapHeight, mapWidth]];
-            L.imageOverlay(imageUrl, bounds).addTo(map);
+                    var hue = 100 -(j * colorStep); // 색상 계산
 
-            map.fitBounds(bounds); // 이미지가 자동으로 보이도록 지도 확대
+                    var color = 'hsl(' + hue + ', 100%, 50%)'; // HSL 색상으로 변환
 
-            var icon1 = L.icon({
-                iconUrl: '{% static "icons/Gun.png" %}',
-                iconSize: [32.8, 20],
-            });
+                    positionCoordinates.push([adjustedPositionX, adjustedPositionY, color]);
+                }
 
-            var icon2 = L.icon({
-                iconUrl: '{% static "icons/Death.png" %}',
-                iconSize: [40, 28],
-            });
-
-            var marker1 = L.marker([400, 400], { icon: icon1 }).addTo(map);
-            var marker2 = L.marker([350, 350], { icon: icon2 }).addTo(map);
-
-            // 두 아이콘 사이에 선 추가
-            var latlngs = [marker1.getLatLng(), marker2.getLatLng()];
-            L.polyline(latlngs, { color: 'red' }).addTo(map);
-        };
+                // 모든 좌표를 포함하는 폴리라인을 생성하고 지도에 추가합니다.
+                for (var k = 0; k < positionCoordinates.length - 1; k++) {
+                    L.polyline(
+                        [positionCoordinates[k], positionCoordinates[k + 1]],
+                        { color: positionCoordinates[k][2] }
+                    ).addTo(map);
+                }
+            };
+        });
     </script>
 </body>
 </html>
