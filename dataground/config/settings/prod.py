@@ -8,7 +8,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-# DATABASES = secure_settings.DATABASES
+DATABASES = secure_settings.DATABASES
 
 # DATABASES = {
 #     'default': {
@@ -34,15 +34,15 @@ ALLOWED_HOSTS = ['*']
 #}
 
 ## 실험용
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'test2',
-        'USER' : 'root',
-        'PASSWORD' : '1234',
-        'HOST' : '127.0.0.1',
-        'PORT' : '4000',
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'test2',
+#         'USER' : 'root',
+#         'PASSWORD' : '1234',
+#         'HOST' : '127.0.0.1',
+#         'PORT' : '4000',
+#     }
+# }
 
 KEY = secure_settings.KEYS
