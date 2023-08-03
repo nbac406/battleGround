@@ -106,5 +106,6 @@ function getCookie(name) {
 }
 
 function showInitialMessage() {
-    $('#content').html('<h2>맵을 선택해 주세요!</h2>');
+    $('#content').append('<h2>맵을 선택하시고 비행기 경로를 지정해 주시면</h2>');
+    $('#content').append('<h2>해당 경로에서 유저들의 착륙지점들을 보여드립니다!</h2>');
 }

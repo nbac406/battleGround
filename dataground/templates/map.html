@@ -15,13 +15,13 @@
     <div class="container">
         <div id="map"></div>
         <div class="info-panel">
-            <h2>Kills 정보</h2>
+            <h2>Kills 정보 (이동 경로는 시간 경과에 따라 초록색에서 빨간색으로 변합니다.)</h2>
             <!-- Kills 정보를 나열할 영역을 추가하세요 -->
             <ul>
                 {% for kill in kills %}
                     {% if kill.killer_name == player_name %}
                         <li class="kill-box">
-                            <span class="event-time">{{ kill.event_time|seconds_to_mins_secs }}</span> {{ kill.victim_name }} 킬
+                            <span class="event-time">{{ kill.event_time|seconds_to_mins_secs }}</span> {{ kill.victim_name }} 킬  {% if 'ai.' in kill.victim_account_id %} <span class="ai-text">(AI)</span>{% endif %}
                             <span class="kill-count">{{ forloop.counter }}킬</span>
                         </li>
                     {% elif kill.victim_name == player_name %}

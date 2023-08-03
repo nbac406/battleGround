@@ -3,3 +3,5 @@
 secure_settings.py
 
 playdata-2-1e60a2f219de.json
+
+__pycache__/ 

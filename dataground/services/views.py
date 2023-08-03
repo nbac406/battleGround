@@ -13,6 +13,9 @@ import warnings
 from django.core.paginator import Paginator
 from django.db.models import Avg, Max, Min, Sum, Count
 from google.cloud import storage
+from requests.exceptions import RequestException
+import json
+
 
 def index(request):
     return render(request, 'main.html')
@@ -39,6 +42,7 @@ def profile(request):
             for match_id in user_data_match_ids:
                 game_mode = match_summarys.objects.filter(match_id=match_id).values('game_mode')
                 map_name = match_summarys.objects.filter(match_id=match_id).values('map_name')
+
                 m_data = {
                     'match_participant_data': match_participants.objects.filter(match_id=match_id, player_name=user_name),
                     'game_mode' : game_mode,
@@ -560,78 +564,79 @@ def profile_update(request):
                 get_player = players.objects.get(account_id=account_id, match_id=i)
                 players_table = get_player.id
 
-                if not match_participants.objects.filter(match_id=i, account_id=account_id).exists():
+                # match_summary 테이블 저장
+                if match_data_json['included'][j]['type'] == 'asset' and not match_summarys.objects.filter(match_id=i).exists():
+                    createAt = match_data_json['data']['attributes']['createdAt']
+                    gameMode = match_data_json['data']['attributes']['gameMode']
+                    mapname = match_data_json['data']['attributes']['mapName']
+                    duration = match_data_json['data']['attributes']['duration']
+                    match_type = match_data_json['data']['attributes']['matchType']
+                    asset_url = match_data_json['included'][j]['attributes']['URL']
+                    players_table=players.objects.get(id=players_table)
 
-                    # match_summary 테이블 저장
-                    if match_data_json['included'][j]['type'] == 'asset':
-                        createAt = match_data_json['data']['attributes']['createdAt']
-                        gameMode = match_data_json['data']['attributes']['gameMode']
-                        mapname = match_data_json['data']['attributes']['mapName']
-                        duration = match_data_json['data']['attributes']['duration']
-                        match_type = match_data_json['data']['attributes']['matchType']
-                        asset_url = match_data_json['included'][j]['attributes']['URL']
-                        players_table=players.objects.get(id=players_table)
+                    m_summary, m_created = match_summarys.objects.get_or_create(
+                        match_id=i,
+                        defaults={
+                            'players_table': players_table,
+                            'created_at': createAt,
+                            'game_mode': gameMode,
+                            'map_name': mapname,
+                            'duration': duration,
+                            'match_type': match_type,
+                            'asset_url': asset_url,
+                        }
+                    )
+                    if m_created:
+                        print("m_summary 데이터 저장")
+                    else:
+                        print("m_summary 중복 데이터 PASS")
+        
+                
+                elif match_data_json['included'][j]['type'] == 'participant' and 'ai' not in match_data_json['included'][j]['attributes']['stats']['playerId'] and not match_participants.objects.filter(match_id=i, account_id=account_id).exists():
 
-                        m_summary, m_created = match_summarys.objects.get_or_create(
-                            match_id=i,
-                            defaults={
-                                'players_table': players_table,
-                                'created_at': createAt,
-                                'game_mode': gameMode,
-                                'map_name': mapname,
-                                'duration': duration,
-                                'match_type': match_type,
-                                'asset_url': asset_url,
-                            }
-                        )
-                        if m_created:
-                            print("m_summary 데이터 저장")
-                        else:
-                            print("m_summary 중복 데이터 PASS")
-            
+                    player_name = match_data_json['included'][j]['attributes']['stats']['name']
+                    accountId = match_data_json['included'][j]['attributes']['stats']['playerId']
+                    team_ranking = match_data_json['included'][j]['attributes']['stats']['winPlace']
+                    DBNOs = match_data_json['included'][j]['attributes']['stats']['DBNOs']
+                    assists = match_data_json['included'][j]['attributes']['stats']['assists']
+                    damageDealt = match_data_json['included'][j]['attributes']['stats']['damageDealt']
+                    headshotkills = match_data_json['included'][j]['attributes']['stats']['headshotKills']
+                    kills = match_data_json['included'][j]['attributes']['stats']['kills']
+                    longestkill = match_data_json['included'][j]['attributes']['stats']['longestKill']
+                    teamkills = match_data_json['included'][j]['attributes']['stats']['teamKills']
+                    rideDistance = match_data_json['included'][j]['attributes']['stats']['rideDistance']
+                    swimDistance = match_data_json['included'][j]['attributes']['stats']['swimDistance']
+                    walkDistance = match_data_json['included'][j]['attributes']['stats']['walkDistance']
+                    players_table=players.objects.get(id=players_table)
 
-                    elif match_data_json['included'][j]['type'] == 'participant' and 'ai' not in match_data_json['included'][j]['attributes']['stats']['playerId']:
+                    m_participant, mp_created = match_participants.objects.get_or_create(
+                        match_id=i,
+                        account_id=accountId,
+                        defaults={
+                            'players_table': players_table,
+                            'player_name': player_name,
+                            'team_ranking': team_ranking,
+                            'dbnos': DBNOs,
+                            'assists': assists,
+                            'damage_dealt': damageDealt,
+                            'headshot_kills': headshotkills,
+                            'kills': kills,
+                            'longest_kill': longestkill,
+                            'team_kills': teamkills,
+                            'ride_distance': rideDistance,
+                            'swim_distance': swimDistance,
+                            'walk_distance': walkDistance,
+                        }
+                    )
 
-                        player_name = match_data_json['included'][j]['attributes']['stats']['name']
-                        accountId = match_data_json['included'][j]['attributes']['stats']['playerId']
-                        team_ranking = match_data_json['included'][j]['attributes']['stats']['winPlace']
-                        DBNOs = match_data_json['included'][j]['attributes']['stats']['DBNOs']
-                        assists = match_data_json['included'][j]['attributes']['stats']['assists']
-                        damageDealt = match_data_json['included'][j]['attributes']['stats']['damageDealt']
-                        headshotkills = match_data_json['included'][j]['attributes']['stats']['headshotKills']
-                        kills = match_data_json['included'][j]['attributes']['stats']['kills']
-                        longestkill = match_data_json['included'][j]['attributes']['stats']['longestKill']
-                        teamkills = match_data_json['included'][j]['attributes']['stats']['teamKills']
-                        rideDistance = match_data_json['included'][j]['attributes']['stats']['rideDistance']
-                        swimDistance = match_data_json['included'][j]['attributes']['stats']['swimDistance']
-                        walkDistance = match_data_json['included'][j]['attributes']['stats']['walkDistance']
-                        players_table=players.objects.get(id=players_table)
-
-                        m_participant, mp_created = match_participants.objects.get_or_create(
-                            match_id=i,
-                            account_id=accountId,
-                            defaults={
-                                'players_table': players_table,
-                                'player_name': player_name,
-                                'team_ranking': team_ranking,
-                                'dbnos': DBNOs,
-                                'assists': assists,
-                                'damage_dealt': damageDealt,
-                                'headshot_kills': headshotkills,
-                                'kills': kills,
-                                'longest_kill': longestkill,
-                                'team_kills': teamkills,
-                                'ride_distance': rideDistance,
-                                'swim_distance': swimDistance,
-                                'walk_distance': walkDistance,
-                            }
-                        )
-
-                        if mp_created:
-                            print("m_participant 신규 데이터 저장")
-                        else:
-                            print("m_participant 중복 데이터 PASS")
-                            pass
+                    if mp_created:
+                        print("m_participant 신규 데이터 저장")
+                    else:
+                        print("m_participant 중복 데이터 PASS")
+                        pass
+                else:
+                    print('이미 존재하는 match 데이터')
+                    pass
 
     except requests.exceptions.RequestException as e:
         print('API 요청 오류:', e)
@@ -660,73 +665,91 @@ def match_log_map(request):
 
         get_asset_url = match_summarys.objects.filter(match_id=match_id).values('asset_url').first()
         asset_url = get_asset_url['asset_url']
+        try:
+            logs = requests.get(asset_url).json()
+            record = False
+            positions = []
+            kills = []
 
-        logs = requests.get(asset_url).json()
-        record = False
-        positions = []
-        kills = []
+            get_player = players.objects.get(account_id=account_id, match_id=match_id)
+            players_table = get_player.id
+            player_name = get_player.player_name
 
-        get_player = players.objects.get(account_id=account_id, match_id=match_id)
-        players_table = get_player.id
-        player_name = get_player.player_name
+            if not position_logs.objects.filter(account_id=account_id, match_id=match_id).exists() and not kill_logs.objects.filter(match_id=match_id).exists():
+                for log in logs[1:] :
+                    if log['_T'] == 'LogMatchStart' :
+                        start_time = datetime.strptime(log['_D'], '%Y-%m-%dT%H:%M:%S.%fZ')
+                    if 'character' in log.keys() :
+                        if log['_T'] == 'LogParachuteLanding' and log['character']['accountId'] == account_id:
+                            record = True
+                        if log['character']['accountId'] == account_id and record and log['_T'] in['LogParachuteLanding', 'LogPlayerPosition'] :
+                            try:
+                                p_log, p_log_created = position_logs.objects.get_or_create(
+                                    account_id = account_id,
+                                    match_id = match_id,
+                                    event_time = (datetime.strptime(log['_D'], '%Y-%m-%dT%H:%M:%S.%fZ') - start_time).seconds,
+                                    defaults = {
+                                        'players_table' : players.objects.get(id=players_table),
+                                        'player_name' : log['character']['name'],
+                                        'location_x' : log['character']['location']['x'],
+                                        'location_y' : log['character']['location']['y'],
+                                    }
+                                )
+                                if p_log_created:
+                                    print('position_log 데이터 저장')
+                                else:
+                                    print('position_log 중복 데이터 PASS')
 
-        if not position_logs.objects.filter(account_id=account_id, match_id=match_id).exists() and not kill_logs.objects.filter(match_id=match_id).exists():
-            for log in logs[1:] :
-                if log['_T'] == 'LogMatchStart' :
-                    start_time = datetime.strptime(log['_D'], '%Y-%m-%dT%H:%M:%S.%fZ')
-                if 'character' in log.keys() :
-                    if log['_T'] == 'LogParachuteLanding' and log['character']['accountId'] == account_id:
-                        record = True
-                    if log['character']['accountId'] == account_id and record and log['_T'] in['LogParachuteLanding', 'LogPlayerPosition'] :
-                        try:
-                            p_log, p_log_created = position_logs.objects.get_or_create(
-                                account_id = account_id,
-                                match_id = match_id,
-                                event_time = (datetime.strptime(log['_D'], '%Y-%m-%dT%H:%M:%S.%fZ') - start_time).seconds,
-                                defaults = {
-                                    'players_table' : players.objects.get(id=players_table),
-                                    'player_name' : log['character']['name'],
-                                    'location_x' : log['character']['location']['x'],
-                                    'location_y' : log['character']['location']['y'],
-                                }
-                            )
-                            if p_log_created:
-                                print('position_log 데이터 저장')
-                            else:
-                                print('position_log 중복 데이터 PASS')
+                            except Exception as e:
+                                print(e)
+                                pass
 
-                        except Exception as e:
-                            print(e)
+                    elif log['_T'] == 'LogPlayerKillV2' :
+                        killer_filter = log['killer']['accountId'] ==  account_id if log['killer'] != None else False
+                        if log['victim']['accountId'] ==  account_id or killer_filter :
+                            try:
+                                k_log, k_log_created = kill_logs.objects.get_or_create(
+                                    match_id = match_id,
+                                    killer_name = None if log['killer'] == None else log['killer']['name'],
+                                    victim_name = log['victim']['name'],
+                                    defaults = {
+                                        'players_table' : players.objects.get(id=players_table),
+                                        'killer_account_id' : None if log['killer'] == None else log['killer']['accountId'],
+                                        'victim_account_id' : log['victim']['accountId'],
+                                        'killer_x' : None if log['killer'] == None else log['killer']['location']['x'],
+                                        'killer_y' : None if log['killer'] == None else log['killer']['location']['y'],
+                                        'victim_x' : log['victim']['location']['x'],
+                                        'victim_y' : log['victim']['location']['y'],
+                                        'event_time' : (datetime.strptime(log['_D'], '%Y-%m-%dT%H:%M:%S.%fZ') - start_time).seconds,
+                                    }
+                                )
+                                if k_log_created:
+                                    print('kill_log 데이터 저장')
+                                else:
+                                    print('kill_log 중복 데이터 PASS')
 
-                elif log['_T'] == 'LogPlayerKillV2' :
-                    killer_filter = log['killer']['accountId'] ==  account_id if log['killer'] != None else False
-                    if log['victim']['accountId'] ==  account_id or killer_filter :
-                        try:
-                            k_log, k_log_created = kill_logs.objects.get_or_create(
-                                match_id = match_id,
-                                killer_name = None if log['killer'] == None else log['killer']['name'],
-                                victim_name = log['victim']['name'],
-                                defaults = {
-                                    'players_table' : players.objects.get(id=players_table),
-                                    'killer_account_id' : None if log['killer'] == None else log['killer']['accountId'],
-                                    'victim_account_id' : log['victim']['accountId'],
-                                    'killer_x' : None if log['killer'] == None else log['killer']['location']['x'],
-                                    'killer_y' : None if log['killer'] == None else log['killer']['location']['y'],
-                                    'victim_x' : log['victim']['location']['x'],
-                                    'victim_y' : log['victim']['location']['y'],
-                                    'event_time' : (datetime.strptime(log['_D'], '%Y-%m-%dT%H:%M:%S.%fZ') - start_time).seconds,
-                                }
-                            )
-                            if k_log_created:
-                                print('kill_log 데이터 저장')
-                            else:
-                                print('kill_log 중복 데이터 PASS')
+                            except Exception as e:
+                                print(e)
+            else:
+                print('이미 존재하는 Log 데이터 입니다.')
 
-                        except Exception as e:
-                            print(e)
-        else:
-            print('이미 존재하는 Log 데이터 입니다.')
+        except RequestException as e:
+            if e.response is not None:
+                print("Request 에러: 상태 코드 {} 중 {}".format(e.response.status_code, e))
+                print("에러에 대한 추가 정보:\n", e.response.text)
+            else:
+                print("Request 에러: 연결 실패 중 {}".format(e))
+
+            return JsonResponse({"error": "죄송합니다. 시간이 경과한 경기는 맵 로그를 불러올 수 없습니다."}, json_dumps_params={"ensure_ascii": False})
         
+        except json.JSONDecodeError as e:
+            print("JSON 디코딩 에러:", e)
+            return JsonResponse({"error": "데이터를 가져오는 중 JSON 디코딩 에러가 발생했습니다. 다시 시도해 주세요."}, json_dumps_params={"ensure_ascii": False})
+
+        except Exception as e:
+            print("일반 에러:", e)
+            return JsonResponse({"error": "알 수 없는 오류가 발생했습니다. 다시 시도해 주세요."}, json_dumps_params={"ensure_ascii": False})
+            
         positions = position_logs.objects.filter(players_table=players_table)
         kills = kill_logs.objects.filter(match_id=match_id).order_by('event_time')
 
