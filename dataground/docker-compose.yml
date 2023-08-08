@@ -18,13 +18,6 @@ services:
     volumes:
       - ./static:/usr/src/app/static
       - ./:/usr/src/app/
-    # ports:
-    #   - 8000:8000
-    environment:
-      - DB_HOST=host.docker.internal
-      - DB_PORT=3306
-      - DB_NAME=dataground
-      - DB_USER=wi
-      - DB_PASSWORD=password
+
 volumes:
   static:

@@ -77,3 +77,12 @@ html {
     margin-top: 20px; /* 위쪽 여백을 줍니다 */
     right: 630px;
 }
+
+.word-cloud {
+    position: fixed;
+    top: 20px;    
+    right: 400px;  
+    z-index: 10;
+    width: 300px;
+    height: auto;
+}

@@ -12,6 +12,7 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </head>
 <body>
+    <div id="loader"></div>
     <div class="row justify-content-center">
         <div class="col-lg-8 bg-white p-4">
             <div class="top">
@@ -273,4 +274,13 @@
             {% endif %}
         </div>
     </div>
+    <script>
+        const updateRecordButton = document.querySelector('.update-button');
+        const loader = document.getElementById('loader');
+
+        updateRecordButton.addEventListener('click', () => {
+            loader.style.display = 'block';
+        });
+    </script>
 </body>
+</html>

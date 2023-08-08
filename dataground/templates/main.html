@@ -6,6 +6,7 @@
     <meta charset="UTF-8">
 </head>
 <body>
+    <img class="word-cloud" src="{% static 'word_cloud.png' %}" alt="Word Cloud">
     <div class="button-form-wrapper">
         <button id="serviceButton">Steam</button>
         <form class="user_search" id="searchForm" method="GET" action="{% url 'services:profile' %}">
