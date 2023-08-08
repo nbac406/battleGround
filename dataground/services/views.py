@@ -12,9 +12,6 @@ import pandas as pd
 import warnings
 from django.core.paginator import Paginator
 from django.db.models import Avg, Max, Min, Sum, Count
-from google.cloud import storage
-from requests.exceptions import RequestException
-import json
 
 
 def index(request):
@@ -28,341 +25,338 @@ def profile(request):
         current_date = datetime.now()
         past_date = current_date - timedelta(days=30)
         players.objects.filter(created_at__lt=past_date).delete()
-
-        if players.objects.filter(player_name=user_name).exists():
         
-            user_data = players.objects.filter(player_name=user_name)
-            user_data_match_ids = user_data.values_list('match_id', flat=True)
+        user_data = players.objects.filter(player_name=user_name)
+        user_data_match_ids = user_data.values_list('match_id', flat=True)
 
+        try:
             user_account_id = user_data.first().account_id
             weapon_masterys_data = weapon_masterys.objects.filter(account_id=user_account_id).first()
+        except:
+            user_account_id = None
+            weapon_masterys_data = None
 
-            match_participant_data = []
-            
-            for match_id in user_data_match_ids:
-                game_mode = match_summarys.objects.filter(match_id=match_id).values('game_mode')
-                map_name = match_summarys.objects.filter(match_id=match_id).values('map_name')
-
-                m_data = {
-                    'match_participant_data': match_participants.objects.filter(match_id=match_id, player_name=user_name),
-                    'game_mode' : game_mode,
-                    'map_name' : map_name,
-                    'created_at': players.objects.filter(match_id=match_id, player_name=user_name).values('created_at').first(),
-                }
-                match_participant_data.append(m_data)
-                match_participant_data = sorted(match_participant_data, key=lambda x: x['created_at']['created_at'], reverse=True)
-
-            paginator = Paginator(match_participant_data, 10)  # 한 페이지에 10개씩 표시하도록 설정
-            page_number = request.GET.get('page')
-            page = paginator.get_page(page_number)
-
-
-            # solo k/d 구하기
-            solo_kills_sum = match_participants.objects.filter(
-                player_name=user_name,
-                match_id__in=match_summarys.objects.filter(game_mode='solo').values('match_id')
-            ).aggregate(Sum('kills'))['kills__sum']
-            
-            solo_death_sum = match_participants.objects.filter(
-                player_name=user_name,
-                team_ranking__gte=2,
-                match_id__in=match_summarys.objects.filter(game_mode='solo').values('match_id')
-            ).count()
-
-            if solo_death_sum != 0:
-                solo_kd = solo_kills_sum/solo_death_sum
-            else:
-                solo_kd = None
-
-            # duo k/d 구하기
-            duo_kills_sum = match_participants.objects.filter(
-                player_name=user_name,
-                match_id__in=match_summarys.objects.filter(game_mode='duo').values('match_id')
-            ).aggregate(Sum('kills'))['kills__sum']
-            
-            duo_death_sum = match_participants.objects.filter(
-                player_name=user_name,
-                team_ranking__gte=2,
-                match_id__in=match_summarys.objects.filter(game_mode='duo').values('match_id')
-            ).count()
-
-            if duo_death_sum != 0:
-                duo_kd = duo_kills_sum/duo_death_sum
-            else:
-                duo_kd = None
-
-            # squad k/d 구하기
-            squad_kills_sum = match_participants.objects.filter(
-                player_name=user_name,
-                match_id__in=match_summarys.objects.filter(game_mode='squad').values('match_id')
-            ).aggregate(Sum('kills'))['kills__sum']
-            
-            squad_death_sum = match_participants.objects.filter(
-                player_name=user_name,
-                team_ranking__gte=2,
-                match_id__in=match_summarys.objects.filter(game_mode='squad').values('match_id')
-            ).count()
-
-            if squad_death_sum != 0:
-                squad_kd = squad_kills_sum/squad_death_sum
-            else:
-                squad_kd = None
-
-            # solo 1등 비율 구하기
-            solo_win_count = match_participants.objects.filter(
-                player_name=user_name,
-                team_ranking=1,
-                match_id__in=match_summarys.objects.filter(game_mode='solo').values('match_id')
-            ).count()
-
-            solo_match_total = match_participants.objects.filter(
-                player_name=user_name,
-                match_id__in=match_summarys.objects.filter(game_mode='solo').values('match_id')
-            ).count()
-
-            if solo_match_total != 0:
-                solo_win_ratio = (solo_win_count/solo_match_total) * 100
-            else:
-                solo_win_ratio = None
-
-            # duo 1등 비율 구하기
-            duo_win_count = match_participants.objects.filter(
-                player_name=user_name,
-                team_ranking=1,
-                match_id__in=match_summarys.objects.filter(game_mode='duo').values('match_id')
-            ).count()
-
-            duo_match_total = match_participants.objects.filter(
-                player_name=user_name,
-                match_id__in=match_summarys.objects.filter(game_mode='duo').values('match_id')
-            ).count()
-
-            if duo_match_total != 0:
-                duo_win_ratio = (duo_win_count/duo_match_total) * 100
-            else:
-                duo_win_ratio = None
-
-            # squad 1등 비율 구하기
-            squad_win_count = match_participants.objects.filter(
-                player_name=user_name,
-                team_ranking=1,
-                match_id__in=match_summarys.objects.filter(game_mode='squad').values('match_id')
-            ).count()
-
-            squad_match_total = match_participants.objects.filter(
-                player_name=user_name,
-                match_id__in=match_summarys.objects.filter(game_mode='squad').values('match_id')
-            ).count()
-
-            if squad_match_total != 0:
-                squad_win_ratio = (squad_win_count/squad_match_total) * 100
-            else:
-                squad_win_ratio = None
-
-            # solo Top10 비율
-            solo_top10_count = match_participants.objects.filter(
-                player_name=user_name,
-                team_ranking__range=(2, 10),
-                match_id__in=match_summarys.objects.filter(game_mode='solo').values('match_id')
-            ).count()
-
-            if solo_match_total != 0:
-                solo_top10_ratio = (solo_top10_count/solo_match_total) * 100
-            else:
-                solo_top10_ratio = None
-
-            # duo Top10 비율 구하기
-            duo_top10_count = match_participants.objects.filter(
-                player_name=user_name,
-                team_ranking__range=(2, 10),
-                match_id__in=match_summarys.objects.filter(game_mode='duo').values('match_id')
-            ).count()
-
-            if duo_match_total != 0:
-                duo_top10_ratio = (duo_top10_count/duo_match_total) * 100
-            else:
-                duo_top10_ratio = None
-
-            # squad Top10 비율 구하기
-            squad_top10_count = match_participants.objects.filter(
-                player_name=user_name,
-                team_ranking__range=(2, 10),
-                match_id__in=match_summarys.objects.filter(game_mode='squad').values('match_id')
-            ).count()
-
-            if squad_match_total != 0:
-                squad_top10_ratio = (squad_top10_count/squad_match_total) * 100
-            else:
-                squad_top10_ratio = None
-
-            # solo 평균 딜량
-            solo_deal_avr =  match_participants.objects.filter(
-                player_name=user_name,
-                match_id__in=match_summarys.objects.filter(game_mode='solo').values('match_id')
-            ).aggregate(Avg('damage_dealt'))['damage_dealt__avg']
-
-            # duo 평균 딜량
-            duo_deal_avr =  match_participants.objects.filter(
-                player_name=user_name,
-                match_id__in=match_summarys.objects.filter(game_mode='duo').values('match_id')
-            ).aggregate(Avg('damage_dealt'))['damage_dealt__avg']
-
-            # squad 평균 딜량
-            squad_deal_avr =  match_participants.objects.filter(
-                player_name=user_name,
-                match_id__in=match_summarys.objects.filter(game_mode='squad').values('match_id')
-            ).aggregate(Avg('damage_dealt'))['damage_dealt__avg']
-
-            # solo 헤드샷 비율
-            solo_headshot_sum = match_participants.objects.filter(
-                player_name=user_name,
-                match_id__in=match_summarys.objects.filter(game_mode='solo').values('match_id')
-            ).aggregate(Sum('headshot_kills'))['headshot_kills__sum']
-
-            if solo_kills_sum is not None and solo_headshot_sum is not None and solo_kills_sum > 0:
-                solo_headshot_ratio = (solo_headshot_sum/solo_kills_sum) * 100
-            else:
-                solo_headshot_ratio = None
-
-            # duo 헤드샷 비율
-            duo_headshot_sum = match_participants.objects.filter(
-                player_name=user_name,
-                match_id__in=match_summarys.objects.filter(game_mode='duo').values('match_id')
-            ).aggregate(Sum('headshot_kills'))['headshot_kills__sum']
-
-            if duo_kills_sum is not None and duo_headshot_sum is not None and duo_kills_sum > 0:
-                duo_headshot_ratio = (duo_headshot_sum/duo_kills_sum) * 100
-            else:
-                duo_headshot_ratio = None
-
-            # squad 헤드샷 비율
-            squad_headshot_sum = match_participants.objects.filter(
-                player_name=user_name,
-                match_id__in=match_summarys.objects.filter(game_mode='squad').values('match_id')
-            ).aggregate(Sum('headshot_kills'))['headshot_kills__sum']
-
-            if squad_kills_sum is not None and squad_headshot_sum is not None and squad_kills_sum > 0:
-                squad_headshot_ratio = (squad_headshot_sum/squad_kills_sum) * 100
-            else:
-                squad_headshot_ratio = None
-
-            # solo 최대킬
-            solo_max_kill_data = match_participants.objects.filter(
-                player_name=user_name,
-                match_id__in=match_summarys.objects.filter(game_mode='solo').values('match_id')
-            ).order_by('-kills').first()
-
-            if solo_max_kill_data:
-                solo_max_kill = solo_max_kill_data.kills
-            else:
-                solo_max_kill = None
-
-
-            # duo 최대킬
-            duo_max_kill_data = match_participants.objects.filter(
-                player_name=user_name,
-                match_id__in=match_summarys.objects.filter(game_mode='duo').values('match_id')
-            ).order_by('-kills').first()
-
-            if duo_max_kill_data:
-                duo_max_kill = duo_max_kill_data.kills
-            else:
-                duo_max_kill = None
-
-            # squad 최대킬
-            squad_max_kill_data = match_participants.objects.filter(
-                player_name=user_name,
-                match_id__in=match_summarys.objects.filter(game_mode='squad').values('match_id')
-            ).order_by('-kills').first()
-
-            if squad_max_kill_data:
-                squad_max_kill = squad_max_kill_data.kills
-            else:
-                squad_max_kill = None
-
-            # solo 킬 최장거리
-            solo_max_kill_range_data = match_participants.objects.filter(
-                player_name=user_name,
-                match_id__in=match_summarys.objects.filter(game_mode='solo').values('match_id')
-            ).order_by('-longest_kill').first()
-
-            if solo_max_kill_range_data:
-                solo_max_kill_range = solo_max_kill_range_data.longest_kill
-            else:
-                solo_max_kill_range = None
-
-            # duo 킬 최장거리
-            duo_max_kill_range_data = match_participants.objects.filter(
-                player_name=user_name,
-                match_id__in=match_summarys.objects.filter(game_mode='duo').values('match_id')
-            ).order_by('-longest_kill').first()
-
-            if duo_max_kill_range_data:
-                duo_max_kill_range = duo_max_kill_range_data.longest_kill
-            else:
-                duo_max_kill_range = None
-
-            # squad 킬 최장거리
-            squad_max_kill_range_data = match_participants.objects.filter(
-                player_name=user_name,
-                match_id__in=match_summarys.objects.filter(game_mode='squad').values('match_id')
-            ).order_by('-longest_kill').first()
-
-            if squad_max_kill_range_data:
-                squad_max_kill_range = squad_max_kill_range_data.longest_kill
-            else:
-                squad_max_kill_range = None
-
-
-            solo_data_overall = {
-                'solo_kd': solo_kd,
-                'solo_win_ratio': solo_win_ratio,
-                'solo_top10_ratio': solo_top10_ratio,
-                'solo_deal_avr': solo_deal_avr,
-                'solo_headshot_ratio': solo_headshot_ratio,
-                'solo_max_kill': solo_max_kill,
-                'solo_max_kill_range': solo_max_kill_range,
-            }
-
-            duo_data_overall = {
-                'duo_kd': duo_kd,
-                'duo_win_ratio': duo_win_ratio,
-                'duo_top10_ratio': duo_top10_ratio,
-                'duo_deal_avr': duo_deal_avr,
-                'duo_headshot_ratio': duo_headshot_ratio,
-                'duo_max_kill': duo_max_kill,
-                'duo_max_kill_range': duo_max_kill_range,
-            }
-
-            squad_data_overall = {
-                'squad_kd': squad_kd,
-                'squad_win_ratio': squad_win_ratio,
-                'squad_top10_ratio': squad_top10_ratio,
-                'squad_deal_avr': squad_deal_avr,
-                'squad_headshot_ratio': squad_headshot_ratio,
-                'squad_max_kill': squad_max_kill,
-                'squad_max_kill_range': squad_max_kill_range,
-            }
-
-            data = {
-                'user_name': user_name,
-                'user_service': service,
-                'match_participant_data' : match_participant_data,
-                'page': page,
-                'solo_data': solo_data_overall,
-                'duo_data': duo_data_overall,
-                'squad_data': squad_data_overall,
-                'weapon_mastery_data': weapon_masterys_data,
-            }
-
-            return render(request, 'profile.html', data)
+        match_participant_data = []
         
-    data = {
-        'user_name': user_name,
-        'user_service': service,
-    }
+        for match_id in user_data_match_ids:
+            game_mode = match_summarys.objects.filter(match_id=match_id).values('game_mode')
+            map_name = match_summarys.objects.filter(match_id=match_id).values('map_name')
+            m_data = {
+                'match_participant_data': match_participants.objects.filter(match_id=match_id, player_name=user_name),
+                'game_mode' : game_mode,
+                'map_name' : map_name,
+                'created_at': players.objects.filter(match_id=match_id, player_name=user_name).values('created_at').first(),
+            }
+            match_participant_data.append(m_data)
+            match_participant_data = sorted(match_participant_data, key=lambda x: x['created_at']['created_at'], reverse=True)
 
-    return render(request, 'profile.html', data)
+        paginator = Paginator(match_participant_data, 10)  # 한 페이지에 10개씩 표시하도록 설정
+        page_number = request.GET.get('page')
+        page = paginator.get_page(page_number)
+
+
+        # solo k/d 구하기
+        solo_kills_sum = match_participants.objects.filter(
+            player_name=user_name,
+            match_id__in=match_summarys.objects.filter(game_mode='solo').values('match_id')
+        ).aggregate(Sum('kills'))['kills__sum']
+        
+        solo_death_sum = match_participants.objects.filter(
+            player_name=user_name,
+            team_ranking__gte=2,
+            match_id__in=match_summarys.objects.filter(game_mode='solo').values('match_id')
+        ).count()
+
+        if solo_death_sum != 0:
+            solo_kd = solo_kills_sum/solo_death_sum
+        else:
+            solo_kd = None
+
+        # duo k/d 구하기
+        duo_kills_sum = match_participants.objects.filter(
+            player_name=user_name,
+            match_id__in=match_summarys.objects.filter(game_mode='duo').values('match_id')
+        ).aggregate(Sum('kills'))['kills__sum']
+        
+        duo_death_sum = match_participants.objects.filter(
+            player_name=user_name,
+            team_ranking__gte=2,
+            match_id__in=match_summarys.objects.filter(game_mode='duo').values('match_id')
+        ).count()
+
+        if duo_death_sum != 0:
+            duo_kd = duo_kills_sum/duo_death_sum
+        else:
+            duo_kd = None
+
+        # squad k/d 구하기
+        squad_kills_sum = match_participants.objects.filter(
+            player_name=user_name,
+            match_id__in=match_summarys.objects.filter(game_mode='squad').values('match_id')
+        ).aggregate(Sum('kills'))['kills__sum']
+        
+        squad_death_sum = match_participants.objects.filter(
+            player_name=user_name,
+            team_ranking__gte=2,
+            match_id__in=match_summarys.objects.filter(game_mode='squad').values('match_id')
+        ).count()
+
+        if squad_death_sum != 0:
+            squad_kd = squad_kills_sum/squad_death_sum
+        else:
+            squad_kd = None
+
+        # solo 1등 비율 구하기
+        solo_win_count = match_participants.objects.filter(
+            player_name=user_name,
+            team_ranking=1,
+            match_id__in=match_summarys.objects.filter(game_mode='solo').values('match_id')
+        ).count()
+
+        solo_match_total = match_participants.objects.filter(
+            player_name=user_name,
+            match_id__in=match_summarys.objects.filter(game_mode='solo').values('match_id')
+        ).count()
+
+        if solo_match_total != 0:
+            solo_win_ratio = (solo_win_count/solo_match_total) * 100
+        else:
+            solo_win_ratio = None
+
+        # duo 1등 비율 구하기
+        duo_win_count = match_participants.objects.filter(
+            player_name=user_name,
+            team_ranking=1,
+            match_id__in=match_summarys.objects.filter(game_mode='duo').values('match_id')
+        ).count()
+
+        duo_match_total = match_participants.objects.filter(
+            player_name=user_name,
+            match_id__in=match_summarys.objects.filter(game_mode='duo').values('match_id')
+        ).count()
+
+        if duo_match_total != 0:
+            duo_win_ratio = (duo_win_count/duo_match_total) * 100
+        else:
+            duo_win_ratio = None
+
+        # squad 1등 비율 구하기
+        squad_win_count = match_participants.objects.filter(
+            player_name=user_name,
+            team_ranking=1,
+            match_id__in=match_summarys.objects.filter(game_mode='squad').values('match_id')
+        ).count()
+
+        squad_match_total = match_participants.objects.filter(
+            player_name=user_name,
+            match_id__in=match_summarys.objects.filter(game_mode='squad').values('match_id')
+        ).count()
+
+        if squad_match_total != 0:
+            squad_win_ratio = (squad_win_count/squad_match_total) * 100
+        else:
+            squad_win_ratio = None
+
+        # solo Top10 비율
+        solo_top10_count = match_participants.objects.filter(
+            player_name=user_name,
+            team_ranking__range=(2, 10),
+            match_id__in=match_summarys.objects.filter(game_mode='solo').values('match_id')
+        ).count()
+
+        if solo_match_total != 0:
+            solo_top10_ratio = (solo_top10_count/solo_match_total) * 100
+        else:
+            solo_top10_ratio = None
+
+        # duo Top10 비율 구하기
+        duo_top10_count = match_participants.objects.filter(
+            player_name=user_name,
+            team_ranking__range=(2, 10),
+            match_id__in=match_summarys.objects.filter(game_mode='duo').values('match_id')
+        ).count()
+
+        if duo_match_total != 0:
+            duo_top10_ratio = (duo_top10_count/duo_match_total) * 100
+        else:
+            duo_top10_ratio = None
+
+        # squad Top10 비율 구하기
+        squad_top10_count = match_participants.objects.filter(
+            player_name=user_name,
+            team_ranking__range=(2, 10),
+            match_id__in=match_summarys.objects.filter(game_mode='squad').values('match_id')
+        ).count()
+
+        if squad_match_total != 0:
+            squad_top10_ratio = (squad_top10_count/squad_match_total) * 100
+        else:
+            squad_top10_ratio = None
+
+        # solo 평균 딜량
+        solo_deal_avr =  match_participants.objects.filter(
+            player_name=user_name,
+            match_id__in=match_summarys.objects.filter(game_mode='solo').values('match_id')
+        ).aggregate(Avg('damage_dealt'))['damage_dealt__avg']
+
+        # duo 평균 딜량
+        duo_deal_avr =  match_participants.objects.filter(
+            player_name=user_name,
+            match_id__in=match_summarys.objects.filter(game_mode='duo').values('match_id')
+        ).aggregate(Avg('damage_dealt'))['damage_dealt__avg']
+
+        # squad 평균 딜량
+        squad_deal_avr =  match_participants.objects.filter(
+            player_name=user_name,
+            match_id__in=match_summarys.objects.filter(game_mode='squad').values('match_id')
+        ).aggregate(Avg('damage_dealt'))['damage_dealt__avg']
+
+        # solo 헤드샷 비율
+        solo_headshot_sum = match_participants.objects.filter(
+            player_name=user_name,
+            match_id__in=match_summarys.objects.filter(game_mode='solo').values('match_id')
+        ).aggregate(Sum('headshot_kills'))['headshot_kills__sum']
+
+        if solo_kills_sum is not None and solo_headshot_sum is not None and solo_kills_sum > 0:
+            solo_headshot_ratio = (solo_headshot_sum/solo_kills_sum) * 100
+        else:
+            solo_headshot_ratio = None
+
+        # duo 헤드샷 비율
+        duo_headshot_sum = match_participants.objects.filter(
+            player_name=user_name,
+            match_id__in=match_summarys.objects.filter(game_mode='duo').values('match_id')
+        ).aggregate(Sum('headshot_kills'))['headshot_kills__sum']
+
+        if duo_kills_sum is not None and duo_headshot_sum is not None and duo_kills_sum > 0:
+            duo_headshot_ratio = (duo_headshot_sum/duo_kills_sum) * 100
+        else:
+            duo_headshot_ratio = None
+
+        # squad 헤드샷 비율
+        squad_headshot_sum = match_participants.objects.filter(
+            player_name=user_name,
+            match_id__in=match_summarys.objects.filter(game_mode='squad').values('match_id')
+        ).aggregate(Sum('headshot_kills'))['headshot_kills__sum']
+
+        if squad_kills_sum is not None and squad_headshot_sum is not None and squad_kills_sum > 0:
+            squad_headshot_ratio = (squad_headshot_sum/squad_kills_sum) * 100
+        else:
+            squad_headshot_ratio = None
+
+        # solo 최대킬
+        solo_max_kill_data = match_participants.objects.filter(
+            player_name=user_name,
+            match_id__in=match_summarys.objects.filter(game_mode='solo').values('match_id')
+        ).order_by('-kills').first()
+
+        if solo_max_kill_data:
+            solo_max_kill = solo_max_kill_data.kills
+        else:
+            solo_max_kill = None
+
+
+        # duo 최대킬
+        duo_max_kill_data = match_participants.objects.filter(
+            player_name=user_name,
+            match_id__in=match_summarys.objects.filter(game_mode='duo').values('match_id')
+        ).order_by('-kills').first()
+
+        if duo_max_kill_data:
+            duo_max_kill = duo_max_kill_data.kills
+        else:
+            duo_max_kill = None
+
+        # squad 최대킬
+        squad_max_kill_data = match_participants.objects.filter(
+            player_name=user_name,
+            match_id__in=match_summarys.objects.filter(game_mode='squad').values('match_id')
+        ).order_by('-kills').first()
+
+        if squad_max_kill_data:
+            squad_max_kill = squad_max_kill_data.kills
+        else:
+            squad_max_kill = None
+
+        # solo 킬 최장거리
+        solo_max_kill_range_data = match_participants.objects.filter(
+            player_name=user_name,
+            match_id__in=match_summarys.objects.filter(game_mode='solo').values('match_id')
+        ).order_by('-longest_kill').first()
+
+        if solo_max_kill_range_data:
+            solo_max_kill_range = solo_max_kill_range_data.longest_kill
+        else:
+            solo_max_kill_range = None
+
+        # duo 킬 최장거리
+        duo_max_kill_range_data = match_participants.objects.filter(
+            player_name=user_name,
+            match_id__in=match_summarys.objects.filter(game_mode='duo').values('match_id')
+        ).order_by('-longest_kill').first()
+
+        if duo_max_kill_range_data:
+            duo_max_kill_range = duo_max_kill_range_data.longest_kill
+        else:
+            duo_max_kill_range = None
+
+        # squad 킬 최장거리
+        squad_max_kill_range_data = match_participants.objects.filter(
+            player_name=user_name,
+            match_id__in=match_summarys.objects.filter(game_mode='squad').values('match_id')
+        ).order_by('-longest_kill').first()
+
+        if squad_max_kill_range_data:
+            squad_max_kill_range = squad_max_kill_range_data.longest_kill
+        else:
+            squad_max_kill_range = None
+
+
+        solo_data_overall = {
+            'solo_kd': solo_kd,
+            'solo_win_ratio': solo_win_ratio,
+            'solo_top10_ratio': solo_top10_ratio,
+            'solo_deal_avr': solo_deal_avr,
+            'solo_headshot_ratio': solo_headshot_ratio,
+            'solo_max_kill': solo_max_kill,
+            'solo_max_kill_range': solo_max_kill_range,
+        }
+
+        duo_data_overall = {
+            'duo_kd': duo_kd,
+            'duo_win_ratio': duo_win_ratio,
+            'duo_top10_ratio': duo_top10_ratio,
+            'duo_deal_avr': duo_deal_avr,
+            'duo_headshot_ratio': duo_headshot_ratio,
+            'duo_max_kill': duo_max_kill,
+            'duo_max_kill_range': duo_max_kill_range,
+        }
+
+        squad_data_overall = {
+            'squad_kd': squad_kd,
+            'squad_win_ratio': squad_win_ratio,
+            'squad_top10_ratio': squad_top10_ratio,
+            'squad_deal_avr': squad_deal_avr,
+            'squad_headshot_ratio': squad_headshot_ratio,
+            'squad_max_kill': squad_max_kill,
+            'squad_max_kill_range': squad_max_kill_range,
+        }
+        print(solo_data_overall)
+
+        data = {
+            'user_name': user_name,
+            'user_service': service,
+            'match_participant_data' : match_participant_data,
+            'page': page,
+            'solo_data': solo_data_overall,
+            'duo_data': duo_data_overall,
+            'squad_data': squad_data_overall,
+            'weapon_mastery_data': weapon_masterys_data,
+        }
+
+        return render(request, 'profile.html', data)
+
+    return redirect('services:index')
 
 def profile_update(request):
     warnings.filterwarnings('ignore')
@@ -565,7 +559,7 @@ def profile_update(request):
                 players_table = get_player.id
 
                 # match_summary 테이블 저장
-                if match_data_json['included'][j]['type'] == 'asset' and not match_summarys.objects.filter(match_id=i).exists():
+                if match_data_json['included'][j]['type'] == 'asset':
                     createAt = match_data_json['data']['attributes']['createdAt']
                     gameMode = match_data_json['data']['attributes']['gameMode']
                     mapname = match_data_json['data']['attributes']['mapName']
@@ -591,8 +585,8 @@ def profile_update(request):
                     else:
                         print("m_summary 중복 데이터 PASS")
         
-                
-                elif match_data_json['included'][j]['type'] == 'participant' and 'ai' not in match_data_json['included'][j]['attributes']['stats']['playerId'] and not match_participants.objects.filter(match_id=i, account_id=account_id).exists():
+
+                elif match_data_json['included'][j]['type'] == 'participant' and 'ai' not in match_data_json['included'][j]['attributes']['stats']['playerId']:
 
                     player_name = match_data_json['included'][j]['attributes']['stats']['name']
                     accountId = match_data_json['included'][j]['attributes']['stats']['playerId']
@@ -634,9 +628,6 @@ def profile_update(request):
                     else:
                         print("m_participant 중복 데이터 PASS")
                         pass
-                else:
-                    print('이미 존재하는 match 데이터')
-                    pass
 
     except requests.exceptions.RequestException as e:
         print('API 요청 오류:', e)
@@ -665,91 +656,77 @@ def match_log_map(request):
 
         get_asset_url = match_summarys.objects.filter(match_id=match_id).values('asset_url').first()
         asset_url = get_asset_url['asset_url']
+
         try:
             logs = requests.get(asset_url).json()
-            record = False
-            positions = []
-            kills = []
-
-            get_player = players.objects.get(account_id=account_id, match_id=match_id)
-            players_table = get_player.id
-            player_name = get_player.player_name
-
-            if not position_logs.objects.filter(account_id=account_id, match_id=match_id).exists() and not kill_logs.objects.filter(match_id=match_id).exists():
-                for log in logs[1:] :
-                    if log['_T'] == 'LogMatchStart' :
-                        start_time = datetime.strptime(log['_D'], '%Y-%m-%dT%H:%M:%S.%fZ')
-                    if 'character' in log.keys() :
-                        if log['_T'] == 'LogParachuteLanding' and log['character']['accountId'] == account_id:
-                            record = True
-                        if log['character']['accountId'] == account_id and record and log['_T'] in['LogParachuteLanding', 'LogPlayerPosition'] :
-                            try:
-                                p_log, p_log_created = position_logs.objects.get_or_create(
-                                    account_id = account_id,
-                                    match_id = match_id,
-                                    event_time = (datetime.strptime(log['_D'], '%Y-%m-%dT%H:%M:%S.%fZ') - start_time).seconds,
-                                    defaults = {
-                                        'players_table' : players.objects.get(id=players_table),
-                                        'player_name' : log['character']['name'],
-                                        'location_x' : log['character']['location']['x'],
-                                        'location_y' : log['character']['location']['y'],
-                                    }
-                                )
-                                if p_log_created:
-                                    print('position_log 데이터 저장')
-                                else:
-                                    print('position_log 중복 데이터 PASS')
-
-                            except Exception as e:
-                                print(e)
-                                pass
-
-                    elif log['_T'] == 'LogPlayerKillV2' :
-                        killer_filter = log['killer']['accountId'] ==  account_id if log['killer'] != None else False
-                        if log['victim']['accountId'] ==  account_id or killer_filter :
-                            try:
-                                k_log, k_log_created = kill_logs.objects.get_or_create(
-                                    match_id = match_id,
-                                    killer_name = None if log['killer'] == None else log['killer']['name'],
-                                    victim_name = log['victim']['name'],
-                                    defaults = {
-                                        'players_table' : players.objects.get(id=players_table),
-                                        'killer_account_id' : None if log['killer'] == None else log['killer']['accountId'],
-                                        'victim_account_id' : log['victim']['accountId'],
-                                        'killer_x' : None if log['killer'] == None else log['killer']['location']['x'],
-                                        'killer_y' : None if log['killer'] == None else log['killer']['location']['y'],
-                                        'victim_x' : log['victim']['location']['x'],
-                                        'victim_y' : log['victim']['location']['y'],
-                                        'event_time' : (datetime.strptime(log['_D'], '%Y-%m-%dT%H:%M:%S.%fZ') - start_time).seconds,
-                                    }
-                                )
-                                if k_log_created:
-                                    print('kill_log 데이터 저장')
-                                else:
-                                    print('kill_log 중복 데이터 PASS')
-
-                            except Exception as e:
-                                print(e)
-            else:
-                print('이미 존재하는 Log 데이터 입니다.')
-
-        except RequestException as e:
-            if e.response is not None:
-                print("Request 에러: 상태 코드 {} 중 {}".format(e.response.status_code, e))
-                print("에러에 대한 추가 정보:\n", e.response.text)
-            else:
-                print("Request 에러: 연결 실패 중 {}".format(e))
-
-            return JsonResponse({"error": "죄송합니다. 시간이 경과한 경기는 맵 로그를 불러올 수 없습니다."}, json_dumps_params={"ensure_ascii": False})
-        
-        except json.JSONDecodeError as e:
-            print("JSON 디코딩 에러:", e)
-            return JsonResponse({"error": "데이터를 가져오는 중 JSON 디코딩 에러가 발생했습니다. 다시 시도해 주세요."}, json_dumps_params={"ensure_ascii": False})
-
-        except Exception as e:
-            print("일반 에러:", e)
-            return JsonResponse({"error": "알 수 없는 오류가 발생했습니다. 다시 시도해 주세요."}, json_dumps_params={"ensure_ascii": False})
+        except:
+            logs = None
             
+        record = False
+        positions = []
+        kills = []
+
+        get_player = players.objects.get(account_id=account_id, match_id=match_id)
+        players_table = get_player.id
+        player_name = get_player.player_name
+
+        if not position_logs.objects.filter(account_id=account_id, match_id=match_id).exists() and not kill_logs.objects.filter(match_id=match_id).exists():
+            for log in logs[1:] :
+                if log['_T'] == 'LogMatchStart' :
+                    start_time = datetime.strptime(log['_D'], '%Y-%m-%dT%H:%M:%S.%fZ')
+                if 'character' in log.keys() :
+                    if log['_T'] == 'LogParachuteLanding' and log['character']['accountId'] == account_id:
+                        record = True
+                    if log['character']['accountId'] == account_id and record and log['_T'] in['LogParachuteLanding', 'LogPlayerPosition'] :
+                        try:
+                            p_log, p_log_created = position_logs.objects.get_or_create(
+                                account_id = account_id,
+                                match_id = match_id,
+                                event_time = (datetime.strptime(log['_D'], '%Y-%m-%dT%H:%M:%S.%fZ') - start_time).seconds,
+                                defaults = {
+                                    'players_table' : players.objects.get(id=players_table),
+                                    'player_name' : log['character']['name'],
+                                    'location_x' : log['character']['location']['x'],
+                                    'location_y' : log['character']['location']['y'],
+                                }
+                            )
+                            if p_log_created:
+                                print('position_log 데이터 저장')
+                            else:
+                                print('position_log 중복 데이터 PASS')
+
+                        except Exception as e:
+                            print(e)
+
+                elif log['_T'] == 'LogPlayerKillV2' :
+                    killer_filter = log['killer']['accountId'] ==  account_id if log['killer'] != None else False
+                    if log['victim']['accountId'] ==  account_id or killer_filter :
+                        try:
+                            k_log, k_log_created = kill_logs.objects.get_or_create(
+                                match_id = match_id,
+                                killer_name = None if log['killer'] == None else log['killer']['name'],
+                                victim_name = log['victim']['name'],
+                                defaults = {
+                                    'players_table' : players.objects.get(id=players_table),
+                                    'killer_account_id' : None if log['killer'] == None else log['killer']['accountId'],
+                                    'victim_account_id' : log['victim']['accountId'],
+                                    'killer_x' : None if log['killer'] == None else log['killer']['location']['x'],
+                                    'killer_y' : None if log['killer'] == None else log['killer']['location']['y'],
+                                    'victim_x' : log['victim']['location']['x'],
+                                    'victim_y' : log['victim']['location']['y'],
+                                    'event_time' : (datetime.strptime(log['_D'], '%Y-%m-%dT%H:%M:%S.%fZ') - start_time).seconds,
+                                }
+                            )
+                            if k_log_created:
+                                print('kill_log 데이터 저장')
+                            else:
+                                print('kill_log 중복 데이터 PASS')
+
+                        except Exception as e:
+                            print(e)
+        else:
+            print('이미 존재하는 Log 데이터 입니다.')
+        
         positions = position_logs.objects.filter(players_table=players_table)
         kills = kill_logs.objects.filter(match_id=match_id).order_by('event_time')
 
@@ -767,11 +744,12 @@ def map_analysis(request):
 from .models import weapons
 
 def weapon_analysis(request):
-    weapons_tier1 = weapons.objects.filter(weapon_tier=1)
-    weapons_tier2 = weapons.objects.filter(weapon_tier=2)
-    weapons_tier3 = weapons.objects.filter(weapon_tier=3)
-    weapons_tier4 = weapons.objects.filter(weapon_tier=4)
-    weapons_tier5 = weapons.objects.filter(weapon_tier=5)
+    weapons_tier1 = weapons.objects.filter(weapon_tier=1).exclude(weapon_type='권총')
+    weapons_tier2 = weapons.objects.filter(weapon_tier=2).exclude(weapon_type='권총')
+    weapons_tier3 = weapons.objects.filter(weapon_tier=3).exclude(weapon_type='권총')
+    weapons_tier4 = weapons.objects.filter(weapon_tier=4).exclude(weapon_type='권총')
+    weapons_tier5 = weapons.objects.filter(weapon_tier=5).exclude(weapon_type='권총')
+    weapons_no_tier = weapons.objects.filter(weapon_tier__isnull=True).exclude(weapon_type='권총')
 
     context = {
         'weapons_tier1': weapons_tier1,
@@ -779,9 +757,12 @@ def weapon_analysis(request):
         'weapons_tier3': weapons_tier3,
         'weapons_tier4': weapons_tier4,
         'weapons_tier5': weapons_tier5,
+        'weapons_no_tier': weapons_no_tier,
     }
 
     return render(request, 'weapon_analysis.html', context)
+
+from google.cloud import storage
 
 def get_map_image_url(request):
     if request.method == "POST" and "start" in request.POST and "destination" in request.POST:

@@ -12,7 +12,8 @@ ENV DJANGO_SETTINGS_MODULE config.settings.prod
 RUN apt update
 RUN apt install python3-dev -y
 
-COPY . /usr/src/app/
+# COPY . /usr/src/app/
+COPY requirements.txt /usr/src/app/
 RUN pwd
 # install dependencies
 RUN pip install --upgrade pip

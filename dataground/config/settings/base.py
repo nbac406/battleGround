@@ -28,7 +28,7 @@ DEBUG = True
 
 # DEBUG_TOOLBAR = DEBUG and not TESTING
 
-# ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'services',
     'bootstrap4',
-    'debug_toolbar',
+
 ]
 
 MIDDLEWARE = [
@@ -53,7 +53,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
+
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -117,6 +117,8 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 
+# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
 
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
@@ -126,7 +128,7 @@ LOGOUT_REDIRECT_URL = '/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-INTERNAL_IPS = ['127.0.0.1:8000'] 
+# INTERNAL_IPS = ['127.0.0.1:8000'] 
 
 #gcs 스토리지 선택
 DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'

@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="{% static 'navbar.css' %}">
     {% include 'navbar.html' %}
     <link rel="stylesheet" href="{% static 'profile.css' %}">
+    <link rel="stylesheet" href="{% static 'style.css' %}">
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
@@ -14,10 +15,11 @@
 <body>
     <div class="row justify-content-center">
         <div class="col-lg-8 bg-white p-4">
-            <!-- Tier 1 -->
-            <div class="map-top">
-                <span style="display: inline-block; padding: 10px; background-color: #f1f1f1; border: 5px solid #ccc; margin-right: 5px; margin-bottom: 5px; border-radius: 5px; font-size: 16px; font-weight: bold;" data-box-id="1" id="box1">1티어</span>
+            <div class="info" style="width: 800px;">
+                <h2>티어 선정은 <span style="color: rgb(44, 104, 254)">Top10</span> 유저들의 주 무기 사용률 입니다.<br>보급 무기는 <span style="color: purple">보라색</span>으로 표시 됩니다.</h2>
             </div>
+            <!-- Tier 1 -->
+            <div class="tier1-header">1티어</div>
             <div class="container">
                 <div class="row">
                     {% for weapon in weapons_tier1 %}
@@ -26,15 +28,12 @@
                             <img src="{% static 'weapons/'|add:weapon.weapon_name|add:'.JPG' %}" alt="{{ weapon.weapon_name }}" class="img-fluid custom-image-size">
                         </a>
                     </div>
-                    <link rel="stylesheet" href="{% static 'style.css' %}">
                     {% endfor %}
                 </div>
             </div>
 
             <!-- Tier 2 -->
-            <div class="map-top">
-                <span>2티어</span>
-            </div>
+            <div class="tier2-header">2티어</div>
             <div class="container">
                 <div class="row">
                     {% for weapon in weapons_tier2 %}
@@ -49,9 +48,7 @@
             </div>
 
             <!-- Tier 3 -->
-            <div class="map-top">
-                <span>3티어</span>
-            </div>
+            <div class="tier3-header">3티어</div>
             <div class="container">
                 <div class="row">
                     {% for weapon in weapons_tier3 %}
@@ -66,9 +63,7 @@
             </div>
 
             <!-- Tier 4 -->
-            <div class="map-top">
-                <span>4티어</span>
-            </div>
+            <div class="tier4-header">4티어</div>
             <div class="container">
                 <div class="row">
                     {% for weapon in weapons_tier4 %}
@@ -83,9 +78,7 @@
             </div>
 
             <!-- Tier 5 -->
-            <div class="map-top">
-                <span>5티어</span>
-            </div>
+                <div class="tier5-header">5티어</div>
             <div class="container">
                 <div class="row">
                     {% for weapon in weapons_tier5 %}
@@ -99,10 +92,22 @@
                 </div>
             </div>
 
-        </div>
-    </div>
-
-
+            <!-- 표본 없음 (null값)-->
+            <div class="tier-rip-header">RIP (표본 부족)</div>
+            <div class="container">
+                <div class="row">
+                    {% for weapon in weapons_no_tier %}
+                    <div class="weapon-container">
+                        <a href="{% url 'services:weapons_detail' weapon_name=weapon.weapon_name %}">
+                            <img src="{% static 'weapons/'|add:weapon.weapon_name|add:'.JPG' %}" alt="{{ weapon.weapon_name }}" class="img-fluid custom-image-size">
+                        </a>
+                    </div>
+                    <link rel="stylesheet" href="{% static 'style.css' %}">
+                    {% endfor %}
+                </div>
+            </div>
             
+        </div>
+    </div>       
 </body>
 </html>

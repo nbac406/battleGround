@@ -13,3 +13,120 @@
     margin-top: .5rem;
 }
 
+.tier1-header {
+    background-color: rgb(44, 104, 254);
+    display: flex;
+    align-items: center;
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+    padding-left: 30px !important;
+    padding-right: 50px !important;
+    margin-top: -24px;
+    margin-left: -24px;
+    margin-right: -24px;
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+    text-shadow: -2px 0 black, 0 2px black, 2px 0 black, 0 -2px black;
+}
+
+.tier2-header {
+    background-color: rgb(92, 219, 160);
+    display: flex;
+    align-items: center;
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+    padding-left: 30px !important;
+    padding-right: 50px !important;
+    margin-top: -24px;
+    margin-left: -24px;
+    margin-right: -24px;
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+    text-shadow: -2px 0 black, 0 2px black, 2px 0 black, 0 -2px black;
+}
+
+.tier3-header {
+    background-color: rgb(235, 180, 60);
+    display: flex;
+    align-items: center;
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+    padding-left: 30px !important;
+    padding-right: 50px !important;
+    margin-top: -24px;
+    margin-left: -24px;
+    margin-right: -24px;
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+    text-shadow: -2px 0 black, 0 2px black, 2px 0 black, 0 -2px black;
+}
+
+.tier4-header {
+    background-color: rgb(161, 161, 161);
+    display: flex;
+    align-items: center;
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+    padding-left: 30px !important;
+    padding-right: 50px !important;
+    margin-top: -24px;
+    margin-left: -24px;
+    margin-right: -24px;
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+    text-shadow: -2px 0 black, 0 2px black, 2px 0 black, 0 -2px black;
+}
+
+.tier5-header {
+    background-color: rgb(164, 121, 70);
+    display: flex;
+    align-items: center;
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+    padding-left: 30px !important;
+    padding-right: 50px !important;
+    margin-top: -24px;
+    margin-left: -24px;
+    margin-right: -24px;
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+    text-shadow: -2px 0 black, 0 2px black, 2px 0 black, 0 -2px black;
+}
+
+.tier-rip-header {
+    background-color: rgb(36, 36, 36);
+    display: flex;
+    align-items: center;
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+    padding-left: 30px !important;
+    padding-right: 50px !important;
+    margin-top: -24px;
+    margin-left: -24px;
+    margin-right: -24px;
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+    text-shadow: -2px 0 black, 0 2px black, 2px 0 black, 0 -2px black;
+}
+
+.row {
+    padding-top: 20px;
+    padding-bottom: 43px;
+}
+
+.weapon-container{
+    margin-right: 9px;
+}
+
+.info {
+    color: white;
+    text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+    text-align: center;
+    padding: 0 73px;
+}

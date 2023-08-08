@@ -15,7 +15,10 @@
     <div class="container">
         <div id="map"></div>
         <div class="info-panel">
-            <h2>Kills 정보 (이동 경로는 시간 경과에 따라 초록색에서 빨간색으로 변합니다.)</h2>
+            <div class="header-container">
+                <h2>Kills 정보 (이동 경로는 시간 경과에 따라 초록색에서 빨간색으로 변합니다.)</h2>
+                <button onclick="goBack()" class="back-btn">뒤로가기 ↩︎</button>
+            </div>
             <!-- Kills 정보를 나열할 영역을 추가하세요 -->
             <ul>
                 {% for kill in kills %}
@@ -140,6 +143,9 @@
                 }
             };
         });
+        function goBack() {
+            window.history.back();
+        }
     </script>
 </body>
 </html>

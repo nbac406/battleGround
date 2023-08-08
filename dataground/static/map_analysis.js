@@ -53,12 +53,14 @@ function generateInputFields() {
     let inputField1 = '<input type="text" id="input-start" class="input-field" placeholder="출발">';
     let inputField2 = '<input type="text" id="input-destination" class="input-field" placeholder="도착">';
     let submitButton = '<button id="submit-button">확인</button>';
+    let resetButton = '<button id="reset-button">리셋</button>';
     $('.info').append(textField);
-    $('.airplaine-direction').append(inputField1, inputField2, submitButton);
+    $('.airplaine-direction').append(inputField1, inputField2, submitButton, resetButton);
 }
 
 function mapRequest(mapName) {
     const submitButton = $('#submit-button');
+    const resetButton = $('#reset-button'); // 리셋 버튼 추가
 
     submitButton.click(function() {
         event.preventDefault();
@@ -88,6 +90,16 @@ function mapRequest(mapName) {
             }
         });
     });
+
+    resetButton.click(function(event) {
+        event.preventDefault();
+        $('.info').empty();
+        $('.airplaine-direction').empty();
+        $('#content').html(`<img src="/static/maps/${mapName}.jpg" class="img-fluid" id="map-image">`);
+        setActiveButton(this);
+        generateInputFields();
+        mapRequest(mapName);
+    });
 }
 
 function getCookie(name) {
@@ -105,7 +117,7 @@ function getCookie(name) {
     return cookieValue;
 }
 
-function showInitialMessage() {
+function showInitialMessage(mapName) {
     $('#content').append('<h2>맵을 선택하시고 비행기 경로를 지정해 주시면</h2>');
     $('#content').append('<h2>해당 경로에서 유저들의 착륙지점들을 보여드립니다!</h2>');
 }
