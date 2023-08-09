@@ -1,0 +1,14 @@
+@font-face {
+    font-family: 'SB';
+    src: url('/static/fonts/SB_B.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'SB';
+    src: url('/static/fonts/SB_L.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'SB';
+    src: url('/static/fonts/SB_M.ttf') format('truetype');
+}
