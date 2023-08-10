@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: gcr.io/playdata-2/django-nginx
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: nginx-conf
+          mountPath: /etc/nginx/conf.d
+        - name: static-files
+          mountPath: /usr/src/app/static
+      volumes:
+      - name: nginx-conf
+        configMap:
+          name: nginx-config
+      - name: static-files
+        emptyDir: {}

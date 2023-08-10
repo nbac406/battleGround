@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django-gunicorn
+spec:
+  selector:
+    matchLabels:
+      app: django-gunicorn
+  template:
+    metadata:
+      labels:
+        app: django-gunicorn
+    spec:
+      containers:
+      - name: web
+        image: gcr.io/playdata-2/django-app
+        command: ["bash", "-c", "python3 manage.py collectstatic --no-input && gunicorn config.wsgi:application -b 0:8000"]
+        ports:
+        - containerPort: 8000
+        volumeMounts:
+        - name: static-files
+          mountPath: /usr/src/app/static
+      volumes:
+      - name: static-files
+        emptyDir: {}
