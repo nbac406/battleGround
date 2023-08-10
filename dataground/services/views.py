@@ -815,3 +815,35 @@ def weapons_detail(request, weapon_name):
         'weapon_parts_type_all': weapon_parts_type_all
     }
     return render(request, 'weapon_analysis_detail.html', context)
+
+# def weapons_detail(request, weapon_name):
+#     specific_weapon = weapons.objects.get(weapon_name=weapon_name)
+#     weapon_image_url = get_image_url('playdata2', f'images/{specific_weapon.weapon_name}.jpg')
+    
+#     weapon_parts_type_data = [
+#         {'name': '탄창', 'type': '탄창'},
+#         {'name': '조준경', 'type': '조준경'},
+#         {'name': '총구', 'type': '총구'},
+#         {'name': '개머리판', 'type': '개머리판'},
+#         {'name': '손잡이', 'type': '손잡이'},
+#     ]
+    
+#     weapon_parts_type_all = []
+
+#     for part_type_data in weapon_parts_type_data:
+#         parts = weapon_parts.objects.filter(weapon_name=weapon_name, parts_type=part_type_data['type'])
+#         has_utilization_rate = any(part.utilization_rate for part in parts)
+#         part_type_dict = {
+#             'name': part_type_data['name'],
+#             'parts': parts,
+#             'has_utilization_rate': has_utilization_rate
+#         }
+#         weapon_parts_type_all.append(part_type_dict)
+    
+#     context = {
+#         'weapon': specific_weapon,
+#         'weapon_image_url': weapon_image_url,
+#         'weapon_parts_type_all': weapon_parts_type_all
+#     }
+#     return render(request, 'weapon_analysis_detail.html', context)
+

@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="{% static 'navbar.css' %}">
     {% include 'navbar.html' %}
     <link rel="stylesheet" href="{% static 'profile.css' %}">
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'fonts/font.css' %}">
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
@@ -25,6 +27,9 @@
             margin-top: 0;
             justify-content: center;
             align-items: center;    
+        }
+        body {
+            font-family: SB;
         }
     </style>
 </head>
@@ -82,36 +87,42 @@
             </div>
             {% endwith %}
         </div>
-            <div class="row"> 
-                <div class="col-lg-12"> 
-                    <h3><b>Parts 선호도</b></h3>
-                    {% for part_type in weapon_parts_type_all %}
-                        <h4>{{ part_type.name }}</h4>
-                        <table class="table table-bordered table-two-cols">
-                            <thead>
-                                <tr>
-                                    <th>파츠명</th>
-                                    <th>사용률</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for part in part_type.parts %}
-                                <tr>
-                                    <td>{{ part.parts_name }}</td>
-                                    <td>{{ part.utilization_rate }}%</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+
+          <div class="row">
+            <div class="col-lg-10 offset-lg-1">
+              <h2><b><div class="tier1-header">Parts 선호도</div></b></h2>
+              {% for part_type in weapon_parts_type_all %}
+              {% if part_type.parts|length > 0 %}
+                <div class="category-section">
+                  <div class="part-type-name"><b>{{ part_type.name }}</b></div>
+                  <div class="row">
+                    {% for part in part_type.parts %}
+                      <div class="col-lg-2">
+                        <div class="part-info">
+                          <img src="{% static 'parts/'|add:part.parts_name|add:'.JPG' %}" alt="{{ part.parts_name }}" style="width: 100%;">
+                          <p class="part-utilization"><b>사용률: {{ part.utilization_rate }}%</b></p>
+                        </div>
+                      </div>
+                      {% if forloop.counter|divisibleby:6 %}
+                        <div class="w-100"></div>
+                      {% endif %}
                     {% endfor %}
+                  </div>
                 </div>
+                {% endif %}
+              {% endfor %}
             </div>
+          </div>
+          
+          
             {% with weapon_image_path=graph_url %}
-            <div class="container">
-                <div class="row">
-                    <div class="col-lg-12 text-center">
-                        <h2><br>주 사살 거리</h2>
+            <div class="row">
+                <div class="col-lg-10 offset-lg-1">
+                  <div class="distance-section">
+                    <div class="text-center">
+                        <h2 class="distance-name">거리에 따른 킬 퍼포먼스</h2>
                         <img src="{{ weapon_image_url }}" alt="{{ weapon.weapon_name }} 무기 거리분석" class="img-fluid weapon-image">
+                    </div>
                     </div>
                 </div>
             </div>

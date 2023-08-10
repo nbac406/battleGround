@@ -35,7 +35,6 @@
     padding-right: 20px !important;
 }
 
-/* 링크에 마우스를 올렸을 때 배경 색상 변경 */
 .nav-link:hover {
     background-color: rgb(96, 96, 96); /* 원하는 밝은 배경 색상으로 변경 */
     transition: background-color 0.3s;
