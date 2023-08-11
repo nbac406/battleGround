@@ -41,18 +41,25 @@ def profile(request):
         for match_id in user_data_match_ids:
             game_mode = match_summarys.objects.filter(match_id=match_id).values('game_mode')
             map_name = match_summarys.objects.filter(match_id=match_id).values('map_name')
+            match_participant = match_participants.objects.filter(match_id=match_id, player_name=user_name)
+
             m_data = {
                 'match_participant_data': match_participants.objects.filter(match_id=match_id, player_name=user_name),
                 'game_mode' : game_mode,
                 'map_name' : map_name,
                 'created_at': players.objects.filter(match_id=match_id, player_name=user_name).values('created_at').first(),
             }
-            match_participant_data.append(m_data)
-            match_participant_data = sorted(match_participant_data, key=lambda x: x['created_at']['created_at'], reverse=True)
 
-        paginator = Paginator(match_participant_data, 10)  # 한 페이지에 10개씩 표시하도록 설정
-        page_number = request.GET.get('page')
-        page = paginator.get_page(page_number)
+            if match_participant:
+                match_participant_data.append(m_data)
+                match_participant_data = sorted(match_participant_data, key=lambda x: x['created_at']['created_at'], reverse=True)
+        
+        if match_participant_data:
+            paginator = Paginator(match_participant_data, 10)  # 한 페이지에 10개씩 표시하도록 설정
+            page_number = request.GET.get('page')
+            page = paginator.get_page(page_number)
+        else:
+            page = None
 
 
         # solo k/d 구하기
