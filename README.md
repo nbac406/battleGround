@@ -97,9 +97,8 @@
 </details>
 
 
-### 팀 내 Rule
+### 우리팀 코드 변수명 및 DB 컬럼명 규칙
 - - -
-- 우리팀 코드 변수명 및 DB 컬럼명 규칙:총격전:
 - 대문자는 넣지 않는다
 - 단어와 단어 사이에는 언더바( _ ) 를 넣는다. [ ex -> matchid (X) / match_id (O) ]
 - 변수명은 어느 역할의 변수명인지 확실히 한다. [ ex -> response (X) / match_data_response (O) ], [ url1 (X) / match_api_url (O) ]
