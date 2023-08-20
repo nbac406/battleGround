@@ -24,6 +24,8 @@
 <img src="https://img.shields.io/badge/nginx-2C2255?style=for-the-badge&logo=nginx&logoColor=white"> 
 <img src="https://img.shields.io/badge/gunicorn-499848?style=for-the-badge&logo=gunicorn&logoColor=white"> 
 </div>
+
+
 ### ERD
 ![image](https://github.com/nbac406/battleGround/assets/125121623/420abaf5-2b25-43e2-880a-bc52c758615d)
 
